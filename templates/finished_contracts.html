@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Tugallangan shartnomalar — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.fin-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+.page-eyebrow {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.page-eyebrow::before { content:''; width:18px; height:2px; background:var(--accent); border-radius:2px; }
+.page-title { font-family: var(--serif); font-size: clamp(1.8rem,4vw,2.3rem); color: var(--text); margin-bottom: 6px; }
+.page-sub { color: var(--text2); font-size: .88rem; margin-bottom: 36px; }
+
+/* Summary banner */
+.summary-banner {
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.25);
+    border-radius: var(--r3); padding: 28px 36px;
+    display: flex; align-items: center; gap: 40px; flex-wrap: wrap;
+    margin-bottom: 36px;
+    animation: fadeUp .6s var(--spring) both;
+}
+.sum-stat { display: flex; flex-direction: column; gap: 3px; }
+.sum-val { font-family: var(--serif); font-size: 1.9rem; color: var(--accent); line-height: 1; }
+.sum-label { font-size: .73rem; color: var(--text2); font-weight: 500; }
+.sum-divider { width: 1px; height: 44px; background: rgba(29,191,115,.25); }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: grid; grid-template-columns: 80px 1fr; }
+.tl-left {
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 18px; padding-right: 20px;
+    position: relative;
+}
+.tl-left::after {
+    content: ''; position: absolute;
+    top: 30px; left: 50%; bottom: -16px;
+    width: 1px; background: var(--border);
+    transform: translateX(-50%);
+}
+.tl-item:last-child .tl-left::after { display: none; }
+.tl-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--surface);
+    box-shadow: 0 0 0 3px rgba(29,191,115,.2);
+    margin-bottom: 5px; flex-shrink: 0; z-index: 1;
+}
+.tl-month { font-size: .68rem; font-weight: 600; color: var(--text3); text-align: center; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+
+.tl-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 18px 22px;
+    margin-bottom: 14px; transition: all var(--t);
+}
+.tl-card:hover { border-color: rgba(29,191,115,.3); box-shadow: var(--shadow-sm); }
+.tl-card-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; margin-bottom: 12px;
+}
+.tl-proj-title { font-weight: 700; font-size: .92rem; color: var(--text); margin-bottom: 3px; }
+.tl-client { font-size: .76rem; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+.tl-amount { font-family: var(--serif); font-size: 1.2rem; color: var(--accent); white-space: nowrap; }
+.tl-card-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+}
+.tl-meta { display: flex; gap: 14px; flex-wrap: wrap; }
+.tl-meta-item { display: flex; align-items: center; gap: 4px; font-size: .75rem; color: var(--text3); }
+
+.review-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: .73rem; font-weight: 600;
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.22);
+    color: var(--accent); text-decoration: none; transition: all var(--t);
+}
+.review-chip:hover { background: var(--accent); color: #fff; }
+.review-chip.has { background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.2); color: var(--warning); }
+
+@media (max-width: 600px) {
+    .fin-wrap { padding: 32px 16px; }
+    .summary-banner { flex-direction: column; gap: 18px; }
+    .sum-divider { display: none; }
+    .tl-item { grid-template-columns: 1fr; }
+    .tl-left { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fin-wrap">
+    <div class="page-eyebrow animate-up">🏁 Yakunlangan</div>
+    <h1 class="page-title animate-up">Tugallangan shartnomalar</h1>
+    <p class="page-sub animate-up">Muvaffaqiyatli bajarilgan barcha loyihalar tarixi.</p>
+
+    <div class="summary-banner">
+        <div class="sum-stat">
+            <div class="sum-val">{{ contracts|length }}</div>
+            <div class="sum-label">Jami tugallangan</div>
+        </div>
+        <div class="sum-divider"></div>
+        <div class="sum-stat">
+            <div class="sum-val">${{ total_earned|default:"0" }}</div>
+            <div class="sum-label">Jami daromad</div>
+        </div>
+        <div class="sum-divider"></div>
+        <div class="sum-stat">
+            <div class="sum-val">{{ avg_rating|default:"—" }}</div>
+            <div class="sum-label">O'rtacha reyting</div>
+        </div>
+        <div class="sum-divider"></div>
+        <div class="sum-stat">
+            <div class="sum-val">{{ reviewed_count|default:0 }}</div>
+            <div class="sum-label">Sharh qoldirilgan</div>
+        </div>
+    </div>
+
+    {% if contracts %}
+    <div class="timeline">
+        {% for contract in contracts %}
+        <div class="tl-item scroll-reveal">
+            <div class="tl-left">
+                <div class="tl-dot"></div>
+                <div class="tl-month">{{ contract.completed_at|date:"M Y"|default:"—" }}</div>
+            </div>
+            <div class="tl-card">
+                <div class="tl-card-top">
+                    <div>
+                        <div class="tl-proj-title">{{ contract.project.title }}</div>
+                        <div class="tl-client">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            {{ contract.client.username }}
+                        </div>
+                    </div>
+                    <div class="tl-amount">${{ contract.amount }}</div>
+                </div>
+                <div class="tl-card-bottom">
+                    <div class="tl-meta">
+                        <span class="tl-meta-item">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            {{ contract.completed_at|date:"d M Y"|default:"—" }}
+                        </span>
+                        {% if contract.review %}
+                        <span class="tl-meta-item">⭐ {{ contract.review.rating }}/5</span>
+                        {% endif %}
+                    </div>
+                    {% if contract.review %}
+                    <span class="review-chip has">⭐ Sharh bor</span>
+                    {% else %}
+                    <a href="{% url 'review_form' contract.id %}" class="review-chip">+ Sharh qoldirish</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🏁</div>
+        <div class="empty-title">Hali tugallangan shartnoma yo'q</div>
+        <p class="empty-sub">Loyihani muvaffaqiyatli yakunlaganingizda, u shu yerda ko'rinadi.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

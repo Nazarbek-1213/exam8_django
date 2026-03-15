@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Sharhlar — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.rl-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+.rl-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 36px; flex-wrap: wrap; gap: 16px;
+}
+.page-eyebrow {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.page-eyebrow::before { content:''; width:18px; height:2px; background:var(--accent); border-radius:2px; }
+.rl-title { font-family: var(--serif); font-size: clamp(1.8rem,4vw,2.3rem); color: var(--text); }
+
+/* Rating overview */
+.rv-overview {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 28px 32px;
+    display: flex; align-items: center; gap: 36px; flex-wrap: wrap;
+    margin-bottom: 32px;
+    animation: fadeUp .6s var(--spring) both;
+}
+.rv-big-num { font-family: var(--serif); font-size: 3.8rem; color: var(--accent); line-height: 1; }
+.rv-stars { display: flex; gap: 3px; font-size: 1.05rem; margin: 6px 0; }
+.rvs-f { color: var(--warning); }
+.rvs-e { color: var(--border); }
+.rv-total { font-size: .78rem; color: var(--text3); }
+
+.rv-divider { width: 1px; height: 60px; background: var(--border); }
+
+.rv-bars { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 180px; }
+.rv-bar-row { display: flex; align-items: center; gap: 10px; }
+.rv-bar-lbl { font-size: .75rem; color: var(--text3); width: 12px; text-align: right; }
+.rv-bar-track { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.rv-bar-fill { height: 100%; background: linear-gradient(90deg, var(--warning), #fbbf24); border-radius: 3px; }
+.rv-bar-cnt { font-size: .72rem; color: var(--text3); width: 22px; text-align: right; }
+
+/* Review cards */
+.rv-list { display: flex; flex-direction: column; gap: 14px; animation: fadeUp .5s var(--spring) .15s both; }
+.rv-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 22px 26px;
+    transition: all var(--t);
+}
+.rv-card:hover { border-color: rgba(29,191,115,.25); box-shadow: var(--shadow-sm); }
+.rv-card-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; margin-bottom: 12px;
+}
+.rv-author { display: flex; align-items: center; gap: 12px; }
+.rv-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .75rem; font-weight: 700; flex-shrink: 0;
+}
+.rv-aname { font-weight: 700; font-size: .88rem; color: var(--text); margin-bottom: 2px; }
+.rv-arole { font-size: .72rem; color: var(--text3); }
+.rv-card-stars { display: flex; gap: 2px; }
+.rcs-f { color: var(--warning); font-size: .9rem; }
+.rcs-e { color: var(--border); font-size: .9rem; }
+.rv-date { font-size: .72rem; color: var(--text3); margin-top: 2px; text-align: right; }
+
+.rv-project-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .73rem; color: var(--accent);
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.2);
+    border-radius: 100px; padding: 3px 10px; margin-bottom: 10px;
+}
+.rv-comment {
+    font-size: .87rem; color: var(--text2); line-height: 1.7;
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .rl-wrap { padding: 32px 16px; }
+    .rv-overview { flex-direction: column; gap: 18px; }
+    .rv-divider { width: 100%; height: 1px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rl-wrap">
+    <div class="rl-header animate-up">
+        <div>
+            <div class="page-eyebrow">⭐ Sharhlar</div>
+            <h1 class="rl-title">Barcha sharhlar</h1>
+        </div>
+    </div>
+
+    {% if reviews %}
+    <div class="rv-overview">
+        <div style="text-align:center">
+            <div class="rv-big-num">{{ avg_rating|floatformat:1|default:"—" }}</div>
+            <div class="rv-stars">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= avg_rating|default:0 %}<span class="rvs-f">★</span>
+                    {% else %}<span class="rvs-e">★</span>{% endif %}
+                {% endfor %}
+            </div>
+            <div class="rv-total">{{ reviews|length }} ta sharh</div>
+        </div>
+        <div class="rv-divider"></div>
+        <div class="rv-bars">
+            {% for i in "54321" %}
+            <div class="rv-bar-row">
+                <div class="rv-bar-lbl">{{ i }}</div>
+                <div class="rv-bar-track">
+                    <div class="rv-bar-fill" style="width:{% if i == '5' %}65{% elif i == '4' %}25{% elif i == '3' %}8{% else %}2{% endif %}%"></div>
+                </div>
+                <div class="rv-bar-cnt">{% if i == '5' %}13{% elif i == '4' %}5{% elif i == '3' %}2{% else %}0{% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if reviews %}
+    <div class="rv-list">
+        {% for review in reviews %}
+        <div class="rv-card scroll-reveal">
+            <div class="rv-card-top">
+                <div class="rv-author">
+                    <div class="rv-avatar">{{ review.author.username|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="rv-aname">{{ review.author.username }}</div>
+                        <div class="rv-arole">{{ review.author.get_role_display|default:"Foydalanuvchi" }}</div>
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div class="rv-card-stars">
+                        {% for j in "12345" %}
+                            {% if forloop.counter <= review.rating %}<span class="rcs-f">★</span>
+                            {% else %}<span class="rcs-e">★</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="rv-date">{{ review.created_at|date:"d M, Y" }}</div>
+                </div>
+            </div>
+            {% if review.contract %}
+            <div class="rv-project-chip">📋 {{ review.contract.project.title }}</div>
+            {% endif %}
+            {% if review.comment %}
+            <div class="rv-comment">{{ review.comment }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">⭐</div>
+        <div class="empty-title">Hali sharhlar yo'q</div>
+        <p class="empty-sub">Muvaffaqiyatli loyiha yakunlanganidan so'ng sharhlar shu yerda ko'rinadi.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

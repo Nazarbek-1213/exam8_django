@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% comment %}
+active_contracts.html — inherits all_contracts layout, just the view passes active-only queryset.
+The filter-tab highlighting is driven by request.resolver_match.url_name in base template.
+Keep the same content as all_contracts.html — your view filters data, template stays DRY.
+{% endcomment %}
+
+{% block title %}Faol shartnomalar — FreelanceHub{% endblock %}
+
+{% block extra_css %}
+{% comment %}Reuse the same CSS from all_contracts.html — copy styles here{% endcomment %}
+<style>
+/* === Copy exact <style> block from all_contracts.html here === */
+/* (Shared CSS — in production move to static/css/contracts.css and link in base.html) */
+
+.contracts-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+}
+.contracts-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+    animation: fadeUp .4s var(--spring) both;
+}
+.page-heading { font-family: var(--serif); font-size: 1.75rem; color: var(--text); }
+.page-heading em { color: var(--accent); font-style: italic; }
+.filter-tabs {
+    display: flex; gap: 6px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 100px; padding: 4px;
+    animation: fadeUp .4s var(--spring) .05s both; flex-wrap: wrap;
+}
+.filter-tab {
+    padding: 7px 16px; border-radius: 100px;
+    font-size: .8rem; font-weight: 600; color: var(--text2);
+    cursor: pointer; transition: var(--t); text-decoration: none;
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.filter-tab:hover { color: var(--text); background: var(--bg); }
+.filter-tab.active { background: var(--accent); color: #fff; }
+.filter-tab .count { background: rgba(255,255,255,.25); border-radius: 100px; padding: 1px 7px; font-size: .7rem; }
+.filter-tab:not(.active) .count { background: var(--bg); color: var(--text3); }
+.stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 24px;
+    animation: fadeUp .4s var(--spring) .15s both;
+}
+.stat-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r2); padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 5px; transition: var(--t);
+}
+.stat-card:hover { border-color: rgba(29,191,115,.3); box-shadow: var(--shadow-sm); }
+.stat-label { font-size: .72rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; }
+.stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); }
+.stat-delta { font-size: .75rem; color: var(--accent); font-weight: 600; }
+.contracts-list { display: flex; flex-direction: column; gap: 14px; }
+.contract-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r3); padding: 22px 26px;
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 20px; align-items: start; transition: var(--t);
+    position: relative; overflow: hidden;
+    animation: fadeUp .5s var(--spring) both;
+}
+.contract-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; border-radius: 4px 0 0 4px;
+    background: var(--accent);
+}
+.contract-card:hover { border-color: rgba(29,191,115,.3); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.cc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.cc-title { font-size: 1rem; font-weight: 700; color: var(--text); text-decoration: none; transition: color var(--t); }
+.cc-title:hover { color: var(--accent); }
+.cc-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: .8rem; color: var(--text2); margin-bottom: 10px; }
+.cc-meta-item { display: flex; align-items: center; gap: 5px; }
+.cc-parties { display: flex; align-items: center; gap: 8px; }
+.cc-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .6rem; font-weight: 700; flex-shrink: 0;
+}
+.cc-party-name { font-size: .8rem; font-weight: 600; color: var(--text2); }
+.cc-party-role { font-size: .7rem; color: var(--text3); }
+.cc-progress-wrap { margin-top: 12px; }
+.cc-progress-label { display: flex; justify-content: space-between; font-size: .72rem; color: var(--text3); margin-bottom: 5px; }
+.cc-progress-bar { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.cc-progress-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--accent-dk)); }
+.contract-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+.cc-amount { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+.cc-actions { display: flex; flex-direction: column; gap: 7px; }
+.contracts-empty {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r3); padding: 70px 24px;
+    text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+@media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .contract-card { grid-template-columns: 1fr; }
+    .contract-card-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contracts-page">
+
+    <div class="contracts-topbar">
+        <div>
+            <div class="breadcrumb">
+                <a href="{% url 'main_client' %}">Bosh sahifa</a>
+                <span>›</span>
+                <a href="{% url 'all_contracts' %}">Shartnomalar</a>
+                <span>›</span>
+                <span>Faol</span>
+            </div>
+            <h1 class="page-heading">Faol <em>shartnomalar</em></h1>
+        </div>
+    </div>
+
+    <div class="filter-tabs">
+        <a href="{% url 'all_contracts' %}" class="filter-tab">Hammasi <span class="count">{{ total_count }}</span></a>
+        <a href="{% url 'active_contracts' %}" class="filter-tab active">Faol <span class="count">{{ active_count }}</span></a>
+        <a href="{% url 'finished_contracts' %}" class="filter-tab">Yakunlangan <span class="count">{{ finished_count }}</span></a>
+        <a href="{% url 'cancelled_contracts' %}" class="filter-tab">Bekor qilingan <span class="count">{{ cancelled_count }}</span></a>
+    </div>
+
+    <div class="stats-row scroll-reveal">
+        <div class="stat-card">
+            <div class="stat-label">Faol shartnomalar</div>
+            <div class="stat-value">{{ active_count }}</div>
+            <div class="stat-delta">Hozir ishlayapti</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Jami aktiv pul</div>
+            <div class="stat-value">${{ active_amount }}</div>
+            <div class="stat-delta">Escrow'da</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">O'rtacha muddat</div>
+            <div class="stat-value">{{ avg_days }} kun</div>
+            <div class="stat-delta">Qolgan</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Bajarilish</div>
+            <div class="stat-value">{{ avg_progress }}%</div>
+            <div class="stat-delta">O'rtacha</div>
+        </div>
+    </div>
+
+    <div class="contracts-list">
+        {% for contract in contracts %}
+        <div class="contract-card" style="animation-delay:{{ forloop.counter0 }}00ms">
+            <div class="contract-card-left">
+                <div class="cc-header">
+                    <a href="{% url 'contract_detail' contract.id %}" class="cc-title">{{ contract.title }}</a>
+                    <span class="badge status-active">● Faol</span>
+                </div>
+                <div class="cc-meta">
+                    <div class="cc-meta-item">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Muddat: {{ contract.end_date }}
+                    </div>
+                    <div class="cc-meta-item">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                        #{{ contract.id }}
+                    </div>
+                </div>
+                <div class="cc-parties">
+                    <div class="cc-avatar" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">{{ contract.client.username|slice:":2"|upper }}</div>
+                    <div><div class="cc-party-role">Mijoz</div><div class="cc-party-name">{{ contract.client.username }}</div></div>
+                    <span style="color:var(--border);margin:0 6px;">⇄</span>
+                    <div class="cc-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent-dk))">{{ contract.freelancer.username|slice:":2"|upper }}</div>
+                    <div><div class="cc-party-role">Frilanser</div><div class="cc-party-name">{{ contract.freelancer.username }}</div></div>
+                </div>
+                <div class="cc-progress-wrap">
+                    <div class="cc-progress-label"><span>Bajarilish</span><span>{{ contract.progress_percent }}%</span></div>
+                    <div class="cc-progress-bar"><div class="cc-progress-fill" style="width:{{ contract.progress_percent }}%"></div></div>
+                </div>
+            </div>
+            <div class="contract-card-right">
+                <div class="cc-amount">${{ contract.amount }}</div>
+                <div class="cc-actions">
+                    <a href="{% url 'contract_detail' contract.id %}" class="btn btn-primary btn-sm">Ko'rish</a>
+                    <a href="{% url 'contract_pdf' contract.id %}" class="btn btn-ghost btn-sm">PDF</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="contracts-empty scroll-reveal">
+            <div class="empty-icon">⚡</div>
+            <div class="empty-title">Faol shartnomalar yo'q</div>
+            <div class="empty-sub">Hozirda faol shartnomalaringiz mavjud emas</div>
+            {% if user.role == 'client' %}
+            <a href="{% url 'create_post' %}" class="btn btn-primary" style="margin-top:6px;">Loyiha joylash →</a>
+            {% else %}
+            <a href="{% url 'main_freelancer' %}" class="btn btn-primary" style="margin-top:6px;">Loyihalar ko'rish →</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

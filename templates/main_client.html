@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% block title %}Bosh sahifa — Mijoz | EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.cl-wrap {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* ── Hero ── */
+.cl-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 44px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    position: relative; overflow: hidden;
+    animation: fadeUp .6s var(--spring) both;
+}
+.cl-hero::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 400px; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(29,191,115,.04));
+    pointer-events: none;
+}
+.cl-hero-greeting {
+    font-size: .75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.cl-hero-greeting::before {
+    content: ''; width: 18px; height: 2px;
+    background: var(--accent); border-radius: 2px;
+}
+.cl-hero-title {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: var(--text); line-height: 1.2; margin-bottom: 10px;
+}
+.cl-hero-title em { color: var(--accent); font-style: italic; }
+.cl-hero-sub { color: var(--text2); font-size: .875rem; line-height: 1.6; margin-bottom: 20px; }
+
+.new-project-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    color: #fff; border: none; border-radius: 100px;
+    font-family: var(--font); font-size: .875rem; font-weight: 700;
+    cursor: pointer; transition: all var(--t);
+    box-shadow: 0 4px 16px var(--accent-glow);
+    text-decoration: none;
+}
+.new-project-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+
+.cl-hero-img {
+    font-size: 6rem; flex-shrink: 0;
+    animation: float 4s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+/* ── Stats row ── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    animation: fadeUp .5s var(--spring) .1s both;
+}
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 22px 24px;
+    transition: all var(--t);
+    position: relative; overflow: hidden;
+}
+.stat-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dk));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s ease;
+}
+.stat-card:hover { border-color: rgba(29,191,115,.3); transform: translateY(-2px); }
+.stat-card:hover::after { transform: scaleX(1); }
+
+.stat-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--accent-lt); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px; font-size: 1rem;
+}
+.stat-num {
+    font-family: var(--serif); font-size: 2rem; color: var(--text);
+    line-height: 1; margin-bottom: 4px;
+}
+.stat-label { font-size: .75rem; color: var(--text3); font-weight: 500; }
+.stat-change {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: .7rem; font-weight: 600; margin-top: 6px;
+    color: var(--accent);
+}
+
+/* ── Section ── */
+.section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+}
+.section-title {
+    font-family: var(--serif); font-size: 1.2rem; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+}
+.section-title::before {
+    content: ''; width: 4px; height: 18px;
+    background: var(--accent); border-radius: 2px;
+}
+.section-link { font-size: .8rem; color: var(--accent); font-weight: 600; transition: opacity var(--t); }
+.section-link:hover { opacity: .7; }
+
+/* ── Projects table ── */
+.proj-table {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); overflow: hidden;
+    animation: fadeUp .5s var(--spring) .15s both;
+}
+.proj-table-head {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 90px;
+    padding: 12px 20px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--text3);
+}
+.proj-table-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 90px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    align-items: center; transition: background var(--t);
+}
+.proj-table-row:last-child { border-bottom: none; }
+.proj-table-row:hover { background: var(--bg); }
+
+.proj-table-title { font-size: .875rem; font-weight: 600; color: var(--text); }
+.proj-table-cat { font-size: .78rem; color: var(--text2); }
+.proj-table-budget { font-size: .875rem; font-weight: 600; color: var(--text); }
+.proj-table-bids { font-size: .82rem; color: var(--text2); }
+
+.status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .72rem; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+}
+.status-open { background: var(--accent-lt); color: var(--accent); }
+.status-completed { background: #dbeafe; color: #2563eb; }
+.status-closed { background: #f3f4f6; color: var(--text3); }
+
+.manage-btn {
+    padding: 6px 14px; border-radius: 100px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-size: .75rem; font-weight: 600; color: var(--text2);
+    cursor: pointer; transition: all var(--t); text-decoration: none;
+    display: inline-flex; align-items: center;
+}
+.manage-btn:hover {
+    border-color: var(--accent); color: var(--accent); background: var(--accent-lt);
+}
+
+/* ── 2 col bottom ── */
+.bottom-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    animation: fadeUp .5s var(--spring) .2s both;
+}
+
+/* Freelancers list */
+.fl-list { display: flex; flex-direction: column; gap: 10px; }
+.fl-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--r);
+    transition: all var(--t);
+}
+.fl-item:hover { border-color: rgba(29,191,115,.3); background: var(--accent-lt); }
+.fl-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .8rem; font-weight: 700; flex-shrink: 0;
+}
+.fl-name { font-size: .875rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.fl-major { font-size: .75rem; color: var(--text3); }
+.fl-rate { font-family: var(--serif); font-size: 1rem; color: var(--accent); margin-left: auto; white-space: nowrap; }
+
+/* Quick actions */
+.quick-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.qa-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 20px 16px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); cursor: pointer; transition: all var(--t);
+    text-decoration: none; color: inherit;
+}
+.qa-btn:hover {
+    border-color: var(--accent); background: var(--accent-lt);
+    transform: translateY(-2px);
+}
+.qa-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent-lt); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; transition: all var(--t);
+}
+.qa-btn:hover .qa-icon { background: var(--accent); color: #fff; }
+.qa-label { font-size: .8rem; font-weight: 600; color: var(--text2); text-align: center; }
+
+@media (max-width: 960px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .proj-table-head, .proj-table-row { grid-template-columns: 2fr 1fr 80px; }
+    .proj-table-head span:nth-child(2),
+    .proj-table-head span:nth-child(4),
+    .proj-table-row > *:nth-child(2),
+    .proj-table-row > *:nth-child(4) { display: none; }
+}
+@media (max-width: 600px) {
+    .cl-wrap { padding: 24px 16px; }
+    .cl-hero { flex-direction: column; padding: 24px; }
+    .cl-hero-img { display: none; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cl-wrap">
+
+    <!-- Hero -->
+    <div class="cl-hero">
+        <div>
+            <div class="cl-hero-greeting">Mijoz paneli</div>
+            <h1 class="cl-hero-title">
+                Salom, <em>{{ request.user.username }}</em>!<br>
+                Loyihangizni boshqaring
+            </h1>
+            <p class="cl-hero-sub">
+                Yangi loyiha e'lon qiling, freelancerlardan arizalar qabul qiling.
+            </p>
+            <a href="{% url 'create_post' %}" class="new-project-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Yangi loyiha
+            </a>
+        </div>
+        <div class="cl-hero-img">🏢</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">📂</div>
+            <div class="stat-num">{{ live_projects }}</div>
+            <div class="stat-label">Faol loyihalar</div>
+            <div class="stat-change">↑ Faol</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-num">{{ finished_projects }}</div>
+            <div class="stat-label">Tugatilgan</div>
+            <div class="stat-change">↑ Bajarilgan</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-num">{{ freelancer_count }}</div>
+            <div class="stat-label">Freelancerlar</div>
+            <div class="stat-change">↑ Hamkorlar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-num">{{ avg_rating|floatformat:1|default:"—" }}</div>
+            <div class="stat-label">O'rtacha reyting</div>
+            <div class="stat-change">/ 5.0</div>
+        </div>
+    </div>
+
+    <!-- Projects table -->
+    <div>
+        <div class="section-head">
+            <div class="section-title">Mening loyihalarim</div>
+            <a href="{% url 'myprojects' %}" class="section-link">Hammasini ko'rish →</a>
+        </div>
+        <div class="proj-table">
+            <div class="proj-table-head">
+                <span>Loyiha</span>
+                <span>Kategoriya</span>
+                <span>Byudjet</span>
+                <span>Arizalar</span>
+                <span>Amallar</span>
+            </div>
+            {% for p in my_projects %}
+            <div class="proj-table-row">
+                <div>
+                    <div class="proj-table-title">{{ p.title|truncatechars:40 }}</div>
+                </div>
+                <div class="proj-table-cat">{{ p.category|default:"—" }}</div>
+                <div class="proj-table-budget">${{ p.budget|default:"—" }}</div>
+                <div class="proj-table-bids">{{ p.bids.count }} ta</div>
+                <div>
+                    <a href="{% url 'project_detail' p.pk %}" class="manage-btn">Boshqarish</a>
+                </div>
+            </div>
+            {% empty %}
+            <div style="padding:40px;text-align:center;color:var(--text3);font-size:.875rem;">
+                <div style="font-size:2rem;margin-bottom:10px;">📭</div>
+                Hali loyihalar yo'q —
+                <a href="{% url 'create_post' %}" style="color:var(--accent);font-weight:600;">Yangi loyiha qo'shing</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bottom grid -->
+    <div class="bottom-grid">
+
+        <!-- Freelancers -->
+        <div>
+            <div class="section-head">
+                <div class="section-title">Freelancerlar</div>
+                <a href="{% url 'search' %}" class="section-link">Ko'rish →</a>
+            </div>
+            <div class="fl-list">
+                {% for f in top_freelancers %}
+                <div class="fl-item">
+                    <div class="fl-avatar">{{ f.user.username|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="fl-name">{{ f.user.username }}</div>
+                        <div class="fl-major">{{ f.major|default:"Freelancer" }}</div>
+                    </div>
+                    <div class="fl-rate">⭐ {{ f.avg_rating|floatformat:1|default:"—" }}</div>
+                </div>
+                {% empty %}
+                <div style="padding:32px;text-align:center;color:var(--text3);font-size:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);">
+                    Freelancerlar topilmadi
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div>
+            <div class="section-head">
+                <div class="section-title">Tezkor amallar</div>
+            </div>
+            <div class="quick-actions">
+                <a href="{% url 'create_post' %}" class="qa-btn">
+                    <div class="qa-icon">➕</div>
+                    <div class="qa-label">Loyiha qo'shish</div>
+                </a>
+                <a href="{% url 'search' %}" class="qa-btn">
+                    <div class="qa-icon">🔍</div>
+                    <div class="qa-label">Freelancer topish</div>
+                </a>
+
+                <!-- ✅ messages URL olib tashlandi — project_detail sahifasida bo'lishi kerak -->
+                <a href="{% url 'profile' %}" class="qa-btn">
+                    <div class="qa-icon">💬</div>
+                    <div class="qa-label">Xabarlar</div>
+                </a>
+
+                <a href="{% url 'profile' %}" class="qa-btn">
+                    <div class="qa-icon">👤</div>
+                    <div class="qa-label">Profil</div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

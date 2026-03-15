@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Bid yuborish — {{ project.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.post-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 72px;
+}
+.post-wrap h1 {
+    font-family: var(--serif);
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+.post-wrap p {
+    font-size: .95rem;
+    color: var(--text2);
+    margin-bottom: 24px;
+}
+.post-wrap h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--accent-dk);
+}
+
+/* Form */
+form {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r3);
+    padding: 36px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.form-group input,
+.form-group textarea {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px;
+    font-size: .875rem;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: var(--t);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 18px;
+    border-radius: var(--r2);
+    border: none;
+    cursor: pointer;
+    font-size: .9rem;
+    transition: var(--t);
+}
+.btn-primary:hover {
+    background: var(--accent-dk);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-wrap animate-up">
+    <h1>{{ project.title }}</h1>
+    <p>{{ project.description }}</p>
+
+    <h2>Taklif yuborish</h2>
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="amount">Taklif summasi ($)</label>
+            <input type="number" name="amount" id="amount" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="message">Xabar (ixtiyoriy)</label>
+            <textarea name="message" id="message" rows="4"></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">
+            Bid yuborish
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </form>
+</div>
+{% endblock %}

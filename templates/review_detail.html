@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Sharh — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.rv-detail-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 64px 24px;
+}
+.rv-detail-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 44px;
+    animation: fadeUp .6s var(--spring) both;
+    position: relative; overflow: hidden;
+}
+.rv-detail-card::after {
+    content: '"';
+    position: absolute; bottom: -24px; right: 16px;
+    font-family: var(--serif); font-size: 9rem;
+    color: rgba(29,191,115,.06); line-height: 1; pointer-events: none;
+}
+
+.rv-score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.rv-score-num { font-family: var(--serif); font-size: 3rem; color: var(--accent); line-height: 1; }
+.rv-score-stars { display: flex; gap: 4px; }
+.rvs-f { color: var(--warning); font-size: 1.2rem; }
+.rvs-e { color: var(--border); font-size: 1.2rem; }
+.rv-score-sub { font-size: .75rem; color: var(--text3); margin-top: 4px; }
+
+.rv-body {
+    font-family: var(--serif); font-size: 1.1rem; color: var(--text);
+    line-height: 1.8; margin-bottom: 28px; font-style: italic;
+}
+
+.rv-proj-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .78rem; color: var(--accent);
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.2);
+    border-radius: 100px; padding: 5px 14px;
+    margin-bottom: 24px; transition: all var(--t);
+}
+.rv-proj-link:hover { background: var(--accent); color: #fff; }
+
+.rv-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 22px; border-top: 1px solid var(--border);
+    flex-wrap: wrap; gap: 14px;
+}
+.rv-author { display: flex; align-items: center; gap: 12px; }
+.rv-av {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: .82rem;
+}
+.rv-aname { font-weight: 700; font-size: .88rem; color: var(--text); margin-bottom: 2px; }
+.rv-adate { font-size: .72rem; color: var(--text3); }
+
+.rv-del-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 100px;
+    background: rgba(239,68,68,.08); color: var(--danger);
+    border: 1px solid rgba(239,68,68,.2); font-size: .8rem; font-weight: 600;
+    transition: all var(--t);
+}
+.rv-del-btn:hover { background: rgba(239,68,68,.15); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rv-detail-wrap">
+    <div class="rv-detail-card">
+
+        <div class="rv-score-row">
+            <div class="rv-score-num">{{ review.rating }}</div>
+            <div>
+                <div class="rv-score-stars">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}<span class="rvs-f">★</span>
+                        {% else %}<span class="rvs-e">★</span>{% endif %}
+                    {% endfor %}
+                </div>
+                <div class="rv-score-sub">5 dan</div>
+            </div>
+        </div>
+
+        <div class="rv-body">{{ review.comment|default:"Izoh qoldirilmagan." }}</div>
+
+        {% if review.contract %}
+        <a href="{% url 'project_detail' review.contract.project.id %}" class="rv-proj-link">
+            📋 {{ review.contract.project.title }}
+        </a>
+        {% endif %}
+
+        <div class="rv-footer">
+            <div class="rv-author">
+                <div class="rv-av">{{ review.author.username|slice:":2"|upper }}</div>
+                <div>
+                    <div class="rv-aname">{{ review.author.username }}</div>
+                    <div class="rv-adate">{{ review.created_at|date:"d MMMM, Y" }}</div>
+                </div>
+            </div>
+            {% if user == review.author %}
+            <a href="{% url 'review_delete' review.id %}" class="rv-del-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                O'chirish
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

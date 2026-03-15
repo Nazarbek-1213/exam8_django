@@ -1,0 +1,563 @@
+{% extends 'base.html' %}
+{% block title %}Loyiha joylash — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.post-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 28px 80px;
+}
+
+/* ── Header ── */
+.post-header {
+    margin-bottom: 32px;
+    animation: fadeUp .5s var(--spring) both;
+}
+.breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .78rem; color: var(--text3); margin-bottom: 14px;
+}
+.breadcrumb a { color: var(--accent); transition: opacity var(--t); }
+.breadcrumb a:hover { opacity: .7; }
+
+.post-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.22);
+    border-radius: 100px; padding: 4px 14px;
+    font-size: .72rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 14px;
+}
+.post-title {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    color: var(--text); line-height: 1.2; margin-bottom: 8px;
+}
+.post-title em { color: var(--accent); font-style: italic; }
+.post-sub { color: var(--text2); font-size: .9rem; }
+
+/* ── Tip card ── */
+.tip-card {
+    background: var(--accent-lt);
+    border: 1px solid rgba(29,191,115,.25);
+    border-radius: var(--r2);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex; gap: 14px; align-items: flex-start;
+    animation: fadeUp .5s var(--spring) .05s both;
+}
+.tip-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: .85rem;
+}
+.tip-title { font-size: .82rem; font-weight: 700; color: var(--accent-dk); margin-bottom: 6px; }
+.tip-list { display: flex; flex-direction: column; gap: 4px; }
+.tip-item {
+    font-size: .78rem; color: var(--accent-dk);
+    display: flex; align-items: center; gap: 6px;
+}
+.tip-item::before {
+    content: ''; width: 5px; height: 5px;
+    border-radius: 50%; background: var(--accent); flex-shrink: 0;
+}
+
+/* ── Main card ── */
+.post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0,0,0,.05);
+    animation: fadeUp .5s var(--spring) .1s both;
+}
+
+/* ── Step bar ── */
+.step-bar {
+    display: flex;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+.step-item {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 10px;
+    font-size: .75rem; font-weight: 600; color: var(--text3);
+    border-bottom: 2.5px solid transparent;
+    transition: all var(--t); cursor: default;
+}
+.step-item.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--accent-lt);
+}
+.step-item.done {
+    color: var(--accent-dk);
+    border-bottom-color: var(--accent);
+}
+.step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--border); color: var(--text3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .68rem; font-weight: 800; flex-shrink: 0;
+    transition: all var(--t);
+}
+.step-item.active .step-num { background: var(--accent); color: #fff; }
+.step-item.done .step-num { background: var(--accent-dk); color: #fff; }
+
+/* ── Form ── */
+.post-form {
+    padding: 36px;
+    display: flex; flex-direction: column; gap: 26px;
+}
+
+.section-label {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--text3);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Category grid ── */
+.cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+}
+.cat-option { display: none; }
+.cat-label {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 16px 10px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r2); cursor: pointer;
+    transition: all var(--t);
+}
+.cat-label:hover {
+    border-color: var(--accent); background: var(--accent-lt);
+}
+.cat-option:checked + .cat-label {
+    border-color: var(--accent); background: var(--accent-lt);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.cat-icon { font-size: 1.6rem; }
+.cat-name { font-size: .74rem; font-weight: 600; color: var(--text); }
+
+/* ── Level grid ── */
+.level-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.level-option { display: none; }
+.level-label {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); cursor: pointer; transition: all var(--t);
+}
+.level-label:hover { border-color: var(--accent); background: var(--accent-lt); }
+.level-option:checked + .level-label {
+    border-color: var(--accent); background: var(--accent-lt);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.level-icon { font-size: 1.2rem; }
+.level-name { font-size: .82rem; font-weight: 600; color: var(--text); }
+
+/* ── Budget type ── */
+.budget-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 18px;
+}
+.budget-option { display: none; }
+.budget-label {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 14px 10px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); cursor: pointer; transition: all var(--t);
+}
+.budget-label:hover { border-color: var(--accent); background: var(--accent-lt); }
+.budget-option:checked + .budget-label {
+    border-color: var(--accent); background: var(--accent-lt);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.budget-label-icon { font-size: 1.3rem; }
+.budget-label-text { font-size: .78rem; font-weight: 600; color: var(--text); }
+
+/* ── Skills input ── */
+.skills-wrap {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 10px 12px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--bg); cursor: text;
+    transition: all var(--t); min-height: 52px;
+}
+.skills-wrap:focus-within {
+    border-color: var(--accent);
+    background: #fafffe;
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.skill-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-lt); color: var(--accent-dk);
+    border: 1px solid rgba(29,191,115,.25);
+    border-radius: 100px; padding: 4px 10px;
+    font-size: .75rem; font-weight: 600;
+    animation: fadeUp .2s ease both;
+}
+.skill-tag button {
+    background: none; border: none; cursor: pointer;
+    color: var(--accent); font-size: 1rem; line-height: 1;
+    padding: 0; opacity: .7; transition: opacity var(--t);
+}
+.skill-tag button:hover { opacity: 1; }
+.skills-wrap input {
+    border: none; background: transparent; outline: none;
+    font-family: var(--font); font-size: .875rem; color: var(--text);
+    min-width: 130px; flex: 1;
+}
+.skills-wrap input::placeholder { color: var(--text3); }
+.skills-hint { font-size: .74rem; color: var(--text3); margin-top: 6px; }
+
+/* ── Form rows ── */
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ── Footer ── */
+.post-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 36px;
+    border-top: 1px solid var(--border);
+    background: var(--bg); gap: 12px; flex-wrap: wrap;
+}
+.btn-ghost {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 100px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-family: var(--font); font-size: .85rem; font-weight: 600;
+    color: var(--text2); cursor: pointer; transition: all var(--t);
+    text-decoration: none;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+
+.btn-submit {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 100px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    color: #fff; border: none; cursor: pointer;
+    font-family: var(--font); font-size: .9rem; font-weight: 700;
+    transition: all var(--t);
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 26px var(--accent-glow); }
+.btn-submit:active { transform: scale(.97); }
+
+@media (max-width: 640px) {
+    .post-wrap { padding: 32px 16px 60px; }
+    .post-form { padding: 24px 20px; }
+    .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
+    .level-grid, .budget-grid { grid-template-columns: 1fr; }
+    .cat-grid { grid-template-columns: repeat(3, 1fr); }
+    .post-footer { flex-direction: column; }
+    .btn-ghost, .btn-submit { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-wrap">
+
+    <!-- Header -->
+    <div class="post-header">
+        <div class="breadcrumb">
+            <a href="{% url 'main_client' %}">Bosh sahifa</a>
+            <span>›</span>
+            <span>Loyiha joylash</span>
+        </div>
+        <div class="post-eyebrow">✨ Yangi loyiha</div>
+        <h1 class="post-title">Loyihangizni <em>joylang</em></h1>
+        <p class="post-sub">Minglab iqtidorli freelancerlarga murojaat qiling</p>
+    </div>
+
+    <!-- Tip -->
+    <div class="tip-card">
+        <div class="tip-icon">💡</div>
+        <div>
+            <div class="tip-title">Muvaffaqiyatli loyiha uchun maslahatlar</div>
+            <div class="tip-list">
+                <div class="tip-item">Loyihaning maqsadini aniq va tushunarli yozing</div>
+                <div class="tip-item">Byudjet va muddatni to'g'ri belgilang</div>
+                <div class="tip-item">Talab qilinadigan ko'nikmalarni to'liq ko'rsating</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card -->
+    <div class="post-card">
+
+        <!-- Steps -->
+        <div class="step-bar">
+            <div class="step-item active" id="step1">
+                <div class="step-num">1</div>
+                <span>Asosiy</span>
+            </div>
+            <div class="step-item" id="step2">
+                <div class="step-num">2</div>
+                <span>Ko'nikmalar</span>
+            </div>
+            <div class="step-item" id="step3">
+                <div class="step-num">3</div>
+                <span>Byudjet</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'create_post' %}" id="postForm" class="post-form">
+            {% csrf_token %}
+
+            <!-- ── 1. ASOSIY ── -->
+            <div>
+                <div class="section-label">Loyiha nomi</div>
+                <div class="form-group">
+                    <label class="form-label" for="title">Sarlavha *</label>
+                    <input class="form-input" type="text" name="title" id="title"
+                           placeholder="masalan: Django REST API + React frontend" required>
+                </div>
+            </div>
+
+            <!-- Category -->
+<div>
+    <div class="section-label">Kategoriya *</div>
+    <div class="cat-grid">
+        <div>
+            <input class="cat-option" type="radio" name="category" value="web" id="cat-veb">
+            <label class="cat-label" for="cat-veb">
+                <span class="cat-icon">💻</span>
+                <span class="cat-name">Veb</span>
+            </label>
+        </div>
+        <div>
+            <input class="cat-option" type="radio" name="category" value="design" id="cat-dizayn">
+            <label class="cat-label" for="cat-dizayn">
+                <span class="cat-icon">🎨</span>
+                <span class="cat-name">Dizayn</span>
+            </label>
+        </div>
+        <div>
+            <input class="cat-option" type="radio" name="category" value="mobile" id="cat-mobil">
+            <label class="cat-label" for="cat-mobil">
+                <span class="cat-icon">📱</span>
+                <span class="cat-name">Mobil</span>
+            </label>
+        </div>
+        <div>
+            <input class="cat-option" type="radio" name="category" value="writing" id="cat-kontent">
+            <label class="cat-label" for="cat-kontent">
+                <span class="cat-icon">✍️</span>
+                <span class="cat-name">Kontent</span>
+            </label>
+        </div>
+        <div>
+            <input class="cat-option" type="radio" name="category" value="data" id="cat-data">
+            <label class="cat-label" for="cat-data">
+                <span class="cat-icon">📊</span>
+                <span class="cat-name">Data</span>
+            </label>
+        </div>
+        <div>
+            <input class="cat-option" type="radio" name="category" value="ai" id="cat-ai">
+            <label class="cat-label" for="cat-ai">
+                <span class="cat-icon">🤖</span>
+                <span class="cat-name">AI / ML</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+            <!-- Description -->
+            <div>
+                <div class="section-label">Tavsif</div>
+                <div class="form-group">
+                    <label class="form-label" for="description">Batafsil tavsif *</label>
+                    <textarea class="form-input" name="description" id="description" rows="6"
+                              placeholder="Loyiha haqida batafsil yozing…" required></textarea>
+                </div>
+            </div>
+
+            <!-- ── 2. KO'NIKMALAR ── -->
+            <div>
+                <div class="section-label">Ko'nikmalar va daraja</div>
+
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label class="form-label">Talab qilinadigan ko'nikmalar</label>
+                    <div class="skills-wrap" id="skillsWrap">
+                        <input type="text" id="skillInput" placeholder="Ko'nikma yozing, Enter bosing…">
+                    </div>
+                    <div class="skills-hint">Enter yoki vergul bilan qo'shing</div>
+                    <input type="hidden" name="skills" id="skillsHidden">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tajriba darajasi</label>
+                    <div class="level-grid">
+                        <div>
+                            <input class="level-option" type="radio" name="level" value="entry" id="lv-entry">
+                            <label class="level-label" for="lv-entry">
+                                <span class="level-icon">🌱</span>
+                                <span class="level-name">Boshlang'ich</span>
+                            </label>
+                        </div>
+                        <div>
+                            <input class="level-option" type="radio" name="level" value="intermediate" id="lv-mid" checked>
+                            <label class="level-label" for="lv-mid">
+                                <span class="level-icon">⚡</span>
+                                <span class="level-name">O'rta</span>
+                            </label>
+                        </div>
+                        <div>
+                            <input class="level-option" type="radio" name="level" value="expert" id="lv-exp">
+                            <label class="level-label" for="lv-exp">
+                                <span class="level-icon">🏆</span>
+                                <span class="level-name">Ekspert</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 3. BYUDJET ── -->
+            <div>
+                <div class="section-label">Byudjet va muddat</div>
+
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label class="form-label">Byudjet turi</label>
+                    <div class="budget-grid">
+                        <div>
+                            <input class="budget-option" type="radio" name="budget_type" value="fixed" id="bt-fixed" checked>
+                            <label class="budget-label" for="bt-fixed">
+                                <span class="budget-label-icon">💰</span>
+                                <span class="budget-label-text">Belgilangan</span>
+                            </label>
+                        </div>
+                        <div>
+                            <input class="budget-option" type="radio" name="budget_type" value="hourly" id="bt-hourly">
+                            <label class="budget-label" for="bt-hourly">
+                                <span class="budget-label-icon">⏱️</span>
+                                <span class="budget-label-text">Soatlik</span>
+                            </label>
+                        </div>
+                        <div>
+                            <input class="budget-option" type="radio" name="budget_type" value="milestone" id="bt-mile">
+                            <label class="budget-label" for="bt-mile">
+                                <span class="budget-label-icon">🎯</span>
+                                <span class="budget-label-text">Bosqichli</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label class="form-label" for="budget_min">Min ($)</label>
+                        <input class="form-input" type="number" name="budget_min"
+                               id="budget_min" min="0" placeholder="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="budget">Max ($)</label>
+                        <input class="form-input" type="number" name="budget_max"
+                               id="budget" min="0" placeholder="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="deadline">Muddat</label>
+                        <input class="form-input" type="date" name="deadline" id="deadline">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="post-footer" style="margin: 0 -36px -26px; border-radius: 0 0 20px 20px;">
+                <a href="{% url 'main_client' %}" class="btn-ghost">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                    Bekor qilish
+                </a>
+                <button type="submit" class="btn-submit">
+                    Loyihani joylash
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Skills input ──
+const wrap   = document.getElementById('skillsWrap');
+const input  = document.getElementById('skillInput');
+const hidden = document.getElementById('skillsHidden');
+
+function addSkill(val) {
+    val = val.trim();
+    if (!val) return;
+    const tag = document.createElement('span');
+    tag.className = 'skill-tag';
+    tag.innerHTML = `${val} <button type="button" onclick="removeSkill(this)">×</button>`;
+    wrap.insertBefore(tag, input);
+    input.value = '';
+    updateHidden();
+}
+
+function removeSkill(btn) {
+    btn.parentElement.remove();
+    updateHidden();
+}
+
+function updateHidden() {
+    const tags = Array.from(document.querySelectorAll('.skill-tag'))
+        .map(t => t.firstChild.textContent.trim());
+    hidden.value = tags.join(',');
+}
+
+input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addSkill(input.value);
+    }
+});
+wrap.addEventListener('click', () => input.focus());
+
+// ── Step bar visual update ──
+const form = document.getElementById('postForm');
+const steps = [
+    document.getElementById('step1'),
+    document.getElementById('step2'),
+    document.getElementById('step3'),
+];
+
+function updateSteps() {
+    const title = document.getElementById('title').value;
+    const cat   = document.querySelector('input[name="category"]:checked');
+    const desc  = document.getElementById('description').value;
+    const budget = document.getElementById('budget').value;
+
+    if (title && cat) {
+        steps[0].classList.add('done');
+        steps[1].classList.add('active');
+    }
+    if (title && cat && desc) {
+        steps[1].classList.add('done');
+        steps[2].classList.add('active');
+    }
+    if (budget) {
+        steps[2].classList.add('done');
+    }
+}
+
+form.addEventListener('input', updateSteps);
+form.addEventListener('change', updateSteps);
+
+// Submit — skills yig'ish
+form.addEventListener('submit', updateHidden);
+</script>
+{% endblock %}

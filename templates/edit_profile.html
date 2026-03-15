@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% block title %}Profilni tahrirlash — FreelanceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-edit-layout {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+/* ── Sidebar nav ── */
+.edit-sidebar {
+    position: sticky;
+    top: 88px;
+}
+.sidebar-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r3);
+    overflow: hidden;
+}
+.sidebar-avatar-section {
+    padding: 28px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(160deg, var(--accent-lt) 0%, var(--surface) 60%);
+}
+.sidebar-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.5rem; font-weight: 700;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    position: relative;
+}
+.avatar-edit-btn {
+    position: absolute; bottom: 0; right: 0;
+    width: 24px; height: 24px;
+    background: var(--accent); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 2px solid var(--surface);
+    font-size: .65rem; color: #fff;
+    transition: var(--t);
+}
+.avatar-edit-btn:hover { background: var(--accent-dk); transform: scale(1.1); }
+.sidebar-name { font-size: .95rem; font-weight: 700; margin-bottom: 4px; }
+.sidebar-role { font-size: .78rem; color: var(--text2); }
+
+.sidebar-nav { padding: 10px; }
+.sidebar-nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    font-size: .84rem; font-weight: 500; color: var(--text2);
+    transition: var(--t); cursor: pointer;
+}
+.sidebar-nav-link:hover { background: var(--bg); color: var(--text); }
+.sidebar-nav-link.active {
+    background: var(--accent-lt); color: var(--accent-dk); font-weight: 600;
+}
+.sidebar-nav-link svg { flex-shrink: 0; }
+
+/* Completion bar */
+.completion-section {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+}
+.completion-label {
+    display: flex; justify-content: space-between;
+    font-size: .72rem; color: var(--text2); font-weight: 600; margin-bottom: 8px;
+}
+.completion-label span:last-child { color: var(--accent); font-weight: 700; }
+.completion-bar-bg {
+    height: 6px; background: var(--border); border-radius: 100px; overflow: hidden;
+}
+.completion-bar-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dk));
+    transition: width .8s var(--spring);
+}
+
+/* ── Main edit area ── */
+.edit-main { display: flex; flex-direction: column; gap: 20px; }
+
+.edit-section-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r3);
+    overflow: hidden;
+    animation: fadeUp .5s var(--spring) both;
+}
+.edit-section-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+.edit-section-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent-lt);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); flex-shrink: 0;
+}
+.edit-section-title { font-size: .95rem; font-weight: 700; color: var(--text); }
+.edit-section-sub   { font-size: .78rem; color: var(--text2); }
+.edit-section-body  { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+/* Role toggle */
+.role-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.role-opt {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r2);
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: var(--t);
+    background: var(--bg);
+    display: flex; flex-direction: column; gap: 6px;
+}
+.role-opt:hover { border-color: var(--accent); background: var(--accent-lt); }
+.role-opt input[type="radio"] { display: none; }
+.role-opt:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-lt);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.role-icon  { font-size: 1.4rem; }
+.role-name  { font-size: .9rem; font-weight: 700; color: var(--text); }
+.role-desc  { font-size: .75rem; color: var(--text2); line-height: 1.4; }
+
+/* Skills editor */
+.skills-wrap {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 10px 12px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--bg); cursor: text;
+    min-height: 52px;
+    transition: var(--t);
+}
+.skills-wrap:focus-within {
+    border-color: var(--accent);
+    background: #fafffe;
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.skill-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-lt); color: var(--accent-dk);
+    border-radius: 100px; padding: 4px 10px;
+    font-size: .75rem; font-weight: 600;
+}
+.skill-pill button {
+    background: none; border: none; cursor: pointer;
+    color: var(--accent-dk); opacity: .6; font-size: .9rem;
+    line-height: 1; padding: 0; transition: opacity var(--t);
+}
+.skill-pill button:hover { opacity: 1; }
+.skills-input {
+    border: none; background: transparent; outline: none;
+    font-family: var(--font); font-size: .875rem;
+    color: var(--text); min-width: 120px; flex: 1; padding: 2px 0;
+}
+
+/* Social links */
+.social-row {
+    display: flex; align-items: center; gap: 12px;
+}
+.social-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+
+/* Form footer */
+.edit-footer {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r3);
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+}
+.save-feedback { font-size: .82rem; color: var(--text3); display: flex; align-items: center; gap: 7px; }
+
+/* Danger zone */
+.danger-zone {
+    background: #fef2f2;
+    border: 1.5px solid rgba(239,68,68,.2);
+    border-radius: var(--r3);
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+}
+.danger-zone-text h4 { font-size: .9rem; font-weight: 700; color: var(--danger); margin-bottom: 3px; }
+.danger-zone-text p  { font-size: .8rem; color: #9a3030; }
+
+@media (max-width: 768px) {
+    .profile-edit-layout { grid-template-columns: 1fr; }
+    .edit-sidebar { position: static; }
+}
+@media (max-width: 500px) {
+    .form-row-2, .role-toggle { grid-template-columns: 1fr; }
+    .edit-section-body { padding: 20px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="edit-sidebar animate-up">
+        <div class="sidebar-card">
+            <div class="sidebar-avatar-section">
+                <div class="sidebar-avatar">
+                    {{ user.username|slice:":2"|upper }}
+                    <div class="avatar-edit-btn">✎</div>
+                </div>
+                <div class="sidebar-name">{{ user.username }}</div>
+                <div class="sidebar-role">
+                    {% if user.role == 'freelancer' %}💼 Frilanser{% else %}🏢 Mijoz{% endif %}
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-link active">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Shaxsiy ma'lumot
+                </div>
+                <div class="sidebar-nav-link">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Xavfsizlik
+                </div>
+                <div class="sidebar-nav-link">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    Ko'nikmalar
+                </div>
+                <div class="sidebar-nav-link">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Bildirishnomalar
+                </div>
+            </nav>
+            <div class="completion-section">
+                <div class="completion-label">
+                    <span>Profil to'liqligi</span>
+                    <span>72%</span>
+                </div>
+                <div class="completion-bar-bg">
+                    <div class="completion-bar-fill" style="width:72%"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main content ── -->
+    <div class="edit-main">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Basic info section -->
+            <div class="edit-section-card d1 animate-up">
+                <div class="edit-section-header">
+                    <div class="edit-section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <div class="edit-section-title">Shaxsiy ma'lumot</div>
+                        <div class="edit-section-sub">Asosiy hisob ma'lumotlarini yangilang</div>
+                    </div>
+                </div>
+                <div class="edit-section-body">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Foydalanuvchi nomi</label>
+                            <input class="form-input" type="text" name="username" id="username"
+                                   value="{{ user.username }}" placeholder="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email manzil</label>
+                            <input class="form-input" type="email" name="email" id="email"
+                                   value="{{ user.email }}" placeholder="siz@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Bio / Haqimda</label>
+                        <textarea class="form-input" name="bio" id="bio" rows="4"
+                            placeholder="O'zingiz haqingizda qisqacha yozing — tajribangiz, ixtisosligingiz, qanday loyihalarda ishlashni yoqtirishingiz…">{{ user.bio }}</textarea>
+                        <span class="form-hint">Yaxshi bio 3x ko'p mijoz jalb qiladi</span>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="location">Joylashuv</label>
+                            <input class="form-input" type="text" name="location" id="location"
+                                   value="{{ user.location }}" placeholder="Toshkent, O'zbekiston">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="website">Veb-sayt</label>
+                            <input class="form-input" type="url" name="website" id="website"
+                                   value="{{ user.website }}" placeholder="https://sizningvebsayt.uz">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role section -->
+            <div class="edit-section-card d2 animate-up">
+                <div class="edit-section-header">
+                    <div class="edit-section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                    </div>
+                    <div>
+                        <div class="edit-section-title">Platformadagi rol</div>
+                        <div class="edit-section-sub">Siz kim sifatida ishlaysiz?</div>
+                    </div>
+                </div>
+                <div class="edit-section-body">
+                    <div class="role-toggle">
+                        <label class="role-opt">
+                            <input type="radio" name="role" value="freelancer"
+                                   {% if user.role == 'freelancer' %}checked{% endif %}>
+                            <div class="role-icon">💼</div>
+                            <div class="role-name">Frilanser</div>
+                            <div class="role-desc">Loyihalar topib, mijozlar uchun ishlayman</div>
+                        </label>
+                        <label class="role-opt">
+                            <input type="radio" name="role" value="client"
+                                   {% if user.role == 'client' %}checked{% endif %}>
+                            <div class="role-icon">🏢</div>
+                            <div class="role-name">Mijoz</div>
+                            <div class="role-desc">Loyihalar joylayman, frilanser yollayman</div>
+                        </label>
+                    </div>
+                    {% if user.role == 'freelancer' %}
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="hourly_rate">Soatlik narx ($)</label>
+                            <input class="form-input" type="number" name="hourly_rate" id="hourly_rate"
+                                   value="{{ user.hourly_rate }}" placeholder="50" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="availability">Mavjudlik</label>
+                            <select class="form-input" name="availability" id="availability">
+                                <option value="full" {% if user.availability == 'full' %}selected{% endif %}>To'liq vaqt</option>
+                                <option value="part" {% if user.availability == 'part' %}selected{% endif %}>Yarim vaqt</option>
+                                <option value="busy" {% if user.availability == 'busy' %}selected{% endif %}>Band</option>
+                            </select>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Skills section -->
+            <div class="edit-section-card d3 animate-up">
+                <div class="edit-section-header">
+                    <div class="edit-section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    </div>
+                    <div>
+                        <div class="edit-section-title">Ko'nikmalar</div>
+                        <div class="edit-section-sub">Ixtisosliklaringizni ko'rsating</div>
+                    </div>
+                </div>
+                <div class="edit-section-body">
+                    <div class="form-group">
+                        <label class="form-label">Ko'nikmalaringiz</label>
+                        <div class="skills-wrap" id="skillsWrap">
+                            {% for skill in user.skills_list %}
+                            <span class="skill-pill">{{ skill }} <button type="button" onclick="this.parentElement.remove()">×</button></span>
+                            {% empty %}
+                            <span class="skill-pill">Python <button type="button" onclick="this.parentElement.remove()">×</button></span>
+                            <span class="skill-pill">Django <button type="button" onclick="this.parentElement.remove()">×</button></span>
+                            {% endfor %}
+                            <input class="skills-input" id="skillInput2" type="text" name="skills" placeholder="Ko'nikma qo'shing…">
+                        </div>
+                        <span class="form-hint">Enter bosib yangi ko'nikma qo'shing. Maksimal 15 ta.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social links -->
+            <div class="edit-section-card d4 animate-up">
+                <div class="edit-section-header">
+                    <div class="edit-section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <div>
+                        <div class="edit-section-title">Ijtimoiy havolalar</div>
+                        <div class="edit-section-sub">Ixtiyoriy — profilingizni kuchaytiradi</div>
+                    </div>
+                </div>
+                <div class="edit-section-body">
+                    <div class="social-row form-group">
+                        <div class="social-icon">in</div>
+                        <input class="form-input" type="url" name="linkedin" placeholder="https://linkedin.com/in/username">
+                    </div>
+                    <div class="social-row form-group">
+                        <div class="social-icon">🐙</div>
+                        <input class="form-input" type="url" name="github" placeholder="https://github.com/username">
+                    </div>
+                    <div class="social-row form-group">
+                        <div class="social-icon">🐦</div>
+                        <input class="form-input" type="text" name="twitter" placeholder="@username">
+                    </div>
+                </div>
+            </div>
+
+        </form>
+
+        <!-- Footer actions -->
+        <div class="edit-footer animate-up d5">
+            <div class="save-feedback">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                O'zgarishlar avtomatik saqlanmaydi
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <a href="{% url 'profile' %}" class="btn btn-ghost">Bekor qilish</a>
+                <button type="submit" form="your_form_id" class="btn btn-primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    O'zgarishlarni saqlash
+                </button>
+            </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-zone scroll-reveal">
+            <div class="danger-zone-text">
+                <h4>Xavfli zona</h4>
+                <p>Hisobni o'chirish — bu amalni qaytarib bo'lmaydi</p>
+            </div>
+            <button class="btn btn-danger btn-sm" type="button">Hisobni o'chirish</button>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const wrap2  = document.getElementById('skillsWrap');
+const input2 = document.getElementById('skillInput2');
+if (input2) {
+    input2.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = input2.value.trim();
+            if (!val) return;
+            const pill = document.createElement('span');
+            pill.className = 'skill-pill';
+            pill.innerHTML = `${val} <button type="button" onclick="this.parentElement.remove()">×</button>`;
+            wrap2.insertBefore(pill, input2);
+            input2.value = '';
+        }
+    });
+    wrap2.addEventListener('click', () => input2.focus());
+}
+</script>
+{% endblock %}

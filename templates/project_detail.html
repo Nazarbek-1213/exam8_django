@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-wrap {
+    max-width: 1100px; margin: 0 auto;
+    padding: 48px 32px;
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 28px; align-items: start;
+}
+.detail-main { display: flex; flex-direction: column; gap: 20px; }
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--text3); }
+.breadcrumb a { color: var(--accent); transition: opacity var(--t); }
+.breadcrumb a:hover { opacity: .7; }
+
+.project-hero-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 36px;
+    animation: fadeUp .6s var(--spring) both; position: relative; overflow: hidden;
+}
+.project-hero-card::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle at top right, rgba(29,191,115,.07), transparent 70%);
+    pointer-events: none;
+}
+.project-category-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 100px;
+    background: var(--accent-lt); color: var(--accent);
+    font-size: .75rem; font-weight: 600;
+    border: 1px solid rgba(29,191,115,.25);
+}
+.project-title-big {
+    font-family: var(--serif); font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+    color: var(--text); line-height: 1.25; margin-bottom: 16px; margin-top: 12px;
+}
+.project-meta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.meta-pill {
+    display: flex; align-items: center; gap: 7px;
+    font-size: .82rem; color: var(--text2); padding: 6px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 100px; font-weight: 500;
+}
+.desc-section-title {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--text3);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.desc-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.project-description { color: var(--text2); font-size: .9rem; line-height: 1.8; }
+
+.edit-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 100px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-size: .78rem; font-weight: 600; color: var(--text2);
+    text-decoration: none; transition: all var(--t);
+}
+.edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+
+/* My bid status */
+.my-bid-status {
+    border-radius: var(--r2); padding: 18px 22px;
+    display: flex; align-items: center; gap: 14px; border: 1.5px solid;
+}
+.my-bid-accepted { background: #f0fdf4; border-color: rgba(29,191,115,.3); }
+.my-bid-rejected { background: #fef2f2; border-color: rgba(239,68,68,.25); }
+.my-bid-pending  { background: #fffbeb; border-color: rgba(245,158,11,.3); }
+.my-bid-icon  { font-size: 1.8rem; }
+.my-bid-title { font-weight: 700; font-size: .95rem; margin-bottom: 3px; }
+.my-bid-sub   { font-size: .8rem; opacity: .7; }
+
+/* Bids list */
+.bids-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 28px 32px;
+    animation: fadeUp .6s var(--spring) .1s both;
+}
+.bids-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.bids-title { font-size: 1rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.bid-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: .72rem; font-weight: 700;
+}
+.bids-list { display: flex; flex-direction: column; gap: 12px; }
+.bid-item {
+    border-radius: var(--r); background: var(--bg);
+    border: 1.5px solid var(--border); overflow: hidden; transition: all var(--t);
+}
+.bid-item:hover { border-color: rgba(29,191,115,.3); }
+.bid-item-accepted { border-color: rgba(29,191,115,.4); background: #f0fdf4; }
+.bid-item-rejected { border-color: rgba(239,68,68,.25); background: #fef2f2; opacity: .7; }
+.bid-item-top { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.bid-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .75rem; font-weight: 700; flex-shrink: 0;
+}
+.bid-info { flex: 1; }
+.bid-name { font-size: .88rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.bid-msg {
+    font-size: .78rem; color: var(--text2);
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.bid-price { font-family: var(--serif); font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
+.bid-status-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px; font-size: .7rem; font-weight: 700;
+}
+.chip-pending  { background: #fef3c7; color: #d97706; }
+.chip-accepted { background: var(--accent-lt); color: var(--accent); }
+.chip-rejected { background: #fee2e2; color: #ef4444; }
+
+.bid-actions {
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-top: 1px solid var(--border); background: rgba(0,0,0,.02); flex-wrap: wrap;
+}
+.btn-view-profile {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 100px;
+    background: var(--bg); color: var(--text2); border: 1.5px solid var(--border);
+    font-size: .78rem; font-weight: 700; text-decoration: none; transition: all var(--t);
+}
+.btn-view-profile:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.btn-accept {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: 100px;
+    background: var(--accent); color: #fff;
+    font-size: .8rem; font-weight: 700; text-decoration: none; transition: opacity var(--t);
+}
+.btn-accept:hover { opacity: .85; }
+.btn-reject {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: 100px;
+    background: transparent; color: #ef4444; border: 1.5px solid rgba(239,68,68,.3);
+    font-size: .8rem; font-weight: 700; cursor: pointer;
+    transition: all var(--t); font-family: var(--font);
+}
+.btn-reject:hover { background: #fef2f2; }
+.btn-contract {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: 100px;
+    background: #dbeafe; color: #2563eb;
+    font-size: .8rem; font-weight: 700; text-decoration: none; transition: opacity var(--t);
+}
+.btn-contract:hover { opacity: .85; }
+
+/* Reject modal */
+.reject-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.reject-modal-overlay.open { display: flex; }
+.reject-modal {
+    background: var(--surface); border-radius: var(--r3);
+    padding: 32px; max-width: 440px; width: 90%;
+    animation: fadeUp .3s var(--spring) both;
+}
+.reject-modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.reject-modal-sub   { font-size: .85rem; color: var(--text2); margin-bottom: 20px; }
+.reject-modal textarea {
+    width: 100%; padding: 12px 14px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); font-family: var(--font); font-size: .875rem;
+    color: var(--text); resize: vertical; min-height: 100px; box-sizing: border-box; outline: none;
+}
+.reject-modal textarea:focus { border-color: #ef4444; }
+.reject-modal-btns { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+.btn-cancel-modal {
+    padding: 9px 20px; border-radius: 100px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-size: .85rem; font-weight: 600; color: var(--text2); cursor: pointer;
+}
+.btn-confirm-reject {
+    padding: 9px 20px; border-radius: 100px;
+    background: #ef4444; color: #fff; border: none;
+    font-size: .85rem; font-weight: 700; cursor: pointer; transition: opacity var(--t);
+}
+.btn-confirm-reject:hover { opacity: .85; }
+
+/* Bid form */
+.bid-form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 28px 32px;
+    animation: fadeUp .6s var(--spring) .2s both;
+}
+.bid-form-title {
+    font-size: 1rem; font-weight: 700; color: var(--text);
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+}
+.bid-form-title span {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent-lt); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: .85rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: .78rem; font-weight: 600; color: var(--text2); }
+.form-input {
+    padding: 10px 14px; background: var(--bg);
+    border: 1.5px solid var(--border); border-radius: var(--r);
+    font-family: var(--font); font-size: .875rem; color: var(--text);
+    transition: border-color var(--t); outline: none;
+}
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+textarea.form-input { resize: vertical; }
+.apply-btn {
+    width: 100%; margin-top: 16px; padding: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    color: #fff; border: none; border-radius: 100px;
+    font-family: var(--font); font-size: .9rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all var(--t); box-shadow: 0 4px 16px var(--accent-glow);
+}
+.apply-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px var(--accent-glow); }
+
+/* Sidebar */
+.detail-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 24px;
+    animation: fadeUp .6s var(--spring) .15s both;
+}
+.price-display {
+    text-align: center; padding: 8px 0 20px;
+    border-bottom: 1px solid var(--border); margin-bottom: 18px;
+}
+.price-label { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin-bottom: 6px; }
+.price-amount { font-family: var(--serif); font-size: 2.4rem; color: var(--accent); line-height: 1; }
+.price-note { font-size: .75rem; color: var(--text3); margin-top: 4px; }
+.sidebar-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .84rem;
+}
+.sidebar-row:last-of-type { border-bottom: none; }
+.sidebar-row-label { color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.sidebar-row-val { font-weight: 600; color: var(--text); }
+
+.person-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.person-avatar {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .9rem; font-weight: 700; flex-shrink: 0;
+}
+.person-name { font-weight: 700; color: var(--text); font-size: .92rem; margin-bottom: 2px; }
+.person-type { font-size: .75rem; color: var(--text3); }
+.view-profile-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 9px; border: 1.5px solid var(--border);
+    border-radius: 100px; font-size: .82rem; font-weight: 600; color: var(--text2);
+    transition: all var(--t); text-decoration: none;
+}
+.view-profile-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+
+@media (max-width: 960px) {
+    .detail-wrap { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .detail-wrap { padding: 32px 16px; }
+    .project-hero-card { padding: 24px; }
+    .bids-card, .bid-form-card { padding: 20px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap">
+
+    <!-- ═══ LEFT ═══ -->
+    <div class="detail-main">
+
+        <div class="breadcrumb">
+            {% if request.user.role == 'freelancer' %}
+            <a href="{% url 'main_freelancer' %}">Loyihalar</a>
+            {% else %}
+            <a href="{% url 'main_client' %}">Bosh sahifa</a>
+            {% endif %}
+            <span>›</span>
+            <span>{{ project.title|truncatechars:30 }}</span>
+        </div>
+
+        <!-- Hero -->
+        <div class="project-hero-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+                <div class="project-category-badge">⚙ {{ project.category|default:"Umumiy" }}</div>
+                {% if request.user == project.client %}
+                <a href="{% url 'edit_project' project.id %}" class="edit-btn">✏️ Tahrirlash</a>
+                {% endif %}
+            </div>
+            <h1 class="project-title-big">{{ project.title }}</h1>
+            <div class="project-meta-row">
+                <span class="meta-pill">📅 Muddat: {{ project.deadline|default:"Kelishiladi" }}</span>
+                <span class="meta-pill">👥 {{ project.bids.count }} ta ariza</span>
+                <span class="meta-pill" style="color:var(--accent);">● Faol</span>
+            </div>
+            <div class="desc-section-title">Loyiha tavsifi</div>
+            <p class="project-description">{{ project.description }}</p>
+        </div>
+
+        <!-- Freelancer: o'z bid statusi -->
+        {% if request.user.role == 'freelancer' and my_bid %}
+        <div class="my-bid-status my-bid-{{ my_bid.status }}">
+            <div class="my-bid-icon">
+                {% if my_bid.status == 'accepted' %}🎉
+                {% elif my_bid.status == 'rejected' %}😔
+                {% else %}⏳{% endif %}
+            </div>
+            <div>
+                <div class="my-bid-title">
+                    {% if my_bid.status == 'accepted' %}Arizangiz qabul qilindi!
+                    {% elif my_bid.status == 'rejected' %}Arizangiz rad etildi
+                    {% else %}Ariza ko'rib chiqilmoqda…{% endif %}
+                </div>
+                <div class="my-bid-sub">
+                    Yuborilgan narx: ${{ my_bid.price }}
+                    {% if my_bid.status == 'accepted' and project.contract %}
+                    — <a href="{% url 'contract_detail' project.contract.id %}"
+                         style="color:var(--accent);font-weight:700;">Shartnomani ko'rish →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Client: bids list -->
+        {% if request.user == project.client and bids %}
+        <div class="bids-card">
+            <div class="bids-header">
+                <div class="bids-title">
+                    Arizalar <span class="bid-count">{{ bids|length }}</span>
+                </div>
+            </div>
+            <div class="bids-list">
+                {% for bid in bids %}
+                <div class="bid-item bid-item-{{ bid.status }}">
+                    <div class="bid-item-top">
+                        <div class="bid-avatar">{{ bid.freelancer.username|slice:":2"|upper }}</div>
+                        <div class="bid-info">
+                            <div class="bid-name">{{ bid.freelancer.username }}</div>
+                            <div class="bid-msg">{{ bid.xabar|default:"Ariza yuborildi." }}</div>
+                        </div>
+                        <div class="bid-price">${{ bid.price }}</div>
+                        <span class="bid-status-chip chip-{{ bid.status }}">
+                            {% if bid.status == 'pending' %}⏳ Kutilmoqda
+                            {% elif bid.status == 'accepted' %}✅ Qabul
+                            {% elif bid.status == 'rejected' %}❌ Rad
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="bid-actions">
+                        <!-- ✅ Client faqat freelancer profilini ko'ra oladi — tahrirlash yo'q -->
+                        <a href="{% url 'user_profile' bid.freelancer.id %}" class="btn-view-profile">
+                            👤 Profilni ko'rish
+                        </a>
+                        {% if bid.status == 'pending' %}
+                        <a href="{% url 'accept_bid' bid.id %}" class="btn-accept">✅ Qabul qilish</a>
+                        <button class="btn-reject"
+                                onclick="openRejectModal({{ bid.id }}, '{{ bid.freelancer.username }}')">
+                            ❌ Rad etish
+                        </button>
+                        {% elif bid.status == 'accepted' %}
+                            {% if project.contract %}
+                            <a href="{% url 'contract_detail' project.contract.id %}" class="btn-contract">
+                                📄 Shartnomani ko'rish
+                            </a>
+                            {% else %}
+                            <a href="{% url 'create_contract' project.id bid.freelancer.id %}" class="btn-contract">
+                                📄 Shartnoma tuzish
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Freelancer: bid form -->
+        {% if request.user.role == 'freelancer' and not my_bid %}
+        <div class="bid-form-card">
+            <div class="bid-form-title"><span>✍</span> Ariza yuborish</div>
+            <form method="POST" action="{% url 'place_bid' project.id %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Narx ($)</label>
+                        <input class="form-input" type="number" name="amount" placeholder="250" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Muddati</label>
+                        <input class="form-input" type="text" name="delivery" placeholder="5 kun">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:14px">
+                    <label class="form-label">Xabar</label>
+                    <textarea class="form-input" name="xabar" rows="4"
+                        placeholder="O'zingiz haqida yozing…"></textarea>
+                </div>
+                <button type="submit" class="apply-btn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Ariza yuborish
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div><!-- /detail-main -->
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <div class="detail-sidebar">
+
+        <!-- Budget -->
+        <div class="sidebar-card">
+            <div class="price-display">
+                <div class="price-label">Byudjet</div>
+                <div class="price-amount">
+                    {% if project.budget_max %}${{ project.budget_max }}
+                    {% elif project.budget_min %}${{ project.budget_min }}
+                    {% else %}—{% endif %}
+                </div>
+                <div class="price-note">{{ project.get_budget_type_display }}</div>
+            </div>
+            <div class="sidebar-row">
+                <span class="sidebar-row-label">👥 Arizalar</span>
+                <span class="sidebar-row-val">{{ project.bids.count }}</span>
+            </div>
+            <div class="sidebar-row">
+                <span class="sidebar-row-label">📅 Muddat</span>
+                <span class="sidebar-row-val">{{ project.deadline|default:"—" }}</span>
+            </div>
+            <div class="sidebar-row">
+                <span class="sidebar-row-label">📊 Daraja</span>
+                <span class="sidebar-row-val">{{ project.get_level_display }}</span>
+            </div>
+            <div class="sidebar-row">
+                <span class="sidebar-row-label">Holat</span>
+                <span class="sidebar-row-val" style="color:var(--accent);">● Faol</span>
+            </div>
+        </div>
+
+        <!-- ✅ Freelancer ko'rsa: client profilini faqat ko'rish (tahrirlash yo'q) -->
+        {% if request.user.role == 'freelancer' %}
+        <div class="sidebar-card">
+            <div class="person-row">
+                <div class="person-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+                    {{ project.client.username|slice:":2"|upper }}
+                </div>
+                <div>
+                    <div class="person-name">{{ project.client.username }}</div>
+                    <div class="person-type">Mijoz</div>
+                </div>
+            </div>
+            <a href="{% url 'user_profile' project.client.id %}" class="view-profile-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Profilni ko'rish
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- ✅ Client ko'rsa: o'z profili + faqat tahrirlash -->
+        {% if request.user == project.client %}
+        <div class="sidebar-card">
+            <div class="person-row">
+                <div class="person-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7)">
+                    {{ request.user.username|slice:":2"|upper }}
+                </div>
+                <div>
+                    <div class="person-name">{{ request.user.username }}</div>
+                    <div class="person-type">Mijoz (siz)</div>
+                </div>
+            </div>
+            <a href="{% url 'edit_profile' %}" class="view-profile-btn">
+                ✏️ Profilni tahrirlash
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Similar projects -->
+        {% if similar_projects %}
+        <div class="sidebar-card">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:14px;">
+                O'xshash loyihalar
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                {% for sp in similar_projects %}
+                <a href="{% url 'project_detail' sp.id %}"
+                   style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);transition:all var(--t);font-size:.82rem;color:var(--text);text-decoration:none;"
+                   onmouseover="this.style.borderColor='rgba(29,191,115,.3)';this.style.background='var(--accent-lt)'"
+                   onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+                    <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+                    <span style="flex:1">{{ sp.title|truncatechars:36 }}</span>
+                    <span style="font-size:.78rem;color:var(--accent);font-weight:600;">
+                        {% if sp.budget_max %}${{ sp.budget_max }}{% else %}—{% endif %}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div><!-- /sidebar -->
+</div>
+
+<!-- ═══ REJECT MODAL ═══ -->
+<div class="reject-modal-overlay" id="rejectModal">
+    <div class="reject-modal">
+        <div class="reject-modal-title">❌ Arizani rad etish</div>
+        <div class="reject-modal-sub" id="rejectModalSub">Freelancer uchun sabab qoldiring</div>
+        <form method="POST" id="rejectForm">
+            {% csrf_token %}
+            <textarea name="reason" placeholder="Masalan: Tajriba yetarli emas, narx baland…"></textarea>
+            <div class="reject-modal-btns">
+                <button type="button" class="btn-cancel-modal" onclick="closeRejectModal()">Bekor qilish</button>
+                <button type="submit" class="btn-confirm-reject">Rad etish</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openRejectModal(bidId, username) {
+    document.getElementById('rejectModalSub').textContent =
+        username + ' uchun rad etish sababini yozing';
+    document.getElementById('rejectForm').action = '/bids/bid/' + bidId + '/reject/';
+    document.getElementById('rejectModal').classList.add('open');
+}
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('open');
+}
+document.getElementById('rejectModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+});
+</script>
+{% endblock %}

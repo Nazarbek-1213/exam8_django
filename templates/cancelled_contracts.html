@@ -1,0 +1,102 @@
+{% comment %}=== cancelled_contracts.html =={% endcomment %}
+{% extends 'base.html' %}
+{% block title %}Bekor qilingan shartnomalar — FreelanceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+.contracts-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+.contracts-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; animation: fadeUp .4s var(--spring) both; }
+.page-heading { font-family: var(--serif); font-size: 1.75rem; }
+.page-heading em { color: var(--accent); font-style: italic; }
+.filter-tabs { display: flex; gap: 6px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 100px; padding: 4px; animation: fadeUp .4s var(--spring) .05s both; flex-wrap: wrap; }
+.filter-tab { padding: 7px 16px; border-radius: 100px; font-size: .8rem; font-weight: 600; color: var(--text2); text-decoration: none; display: flex; align-items: center; gap: 7px; transition: var(--t); }
+.filter-tab:hover { color: var(--text); background: var(--bg); }
+.filter-tab.active { background: var(--danger); color: #fff; }
+.filter-tab .count { background: rgba(255,255,255,.25); border-radius: 100px; padding: 1px 7px; font-size: .7rem; }
+.filter-tab:not(.active) .count { background: var(--bg); color: var(--text3); }
+.contracts-list { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
+.contract-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r3); padding: 22px 26px;
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 20px; align-items: start; transition: var(--t);
+    position: relative; overflow: hidden;
+    animation: fadeUp .5s var(--spring) both;
+}
+.contract-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--danger); border-radius: 4px 0 0 4px; }
+.contract-card:hover { border-color: rgba(239,68,68,.25); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.cc-title { font-size: 1rem; font-weight: 700; color: var(--text); text-decoration: none; transition: color var(--t); }
+.cc-title:hover { color: var(--danger); }
+.cc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.cc-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: .8rem; color: var(--text2); margin-bottom: 10px; }
+.cc-meta-item { display: flex; align-items: center; gap: 5px; }
+.cc-parties { display: flex; align-items: center; gap: 8px; }
+.cc-avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .6rem; font-weight: 700; flex-shrink: 0; }
+.cc-party-name { font-size: .8rem; font-weight: 600; color: var(--text2); }
+.cc-party-role { font-size: .7rem; color: var(--text3); }
+.cc-cancel-reason { margin-top: 10px; background: #fef2f2; border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 10px 14px; font-size: .82rem; color: #9a3030; display: flex; align-items: flex-start; gap: 8px; }
+.contract-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+.cc-amount { font-size: 1.1rem; font-weight: 800; color: var(--text2); }
+.cc-actions { display: flex; flex-direction: column; gap: 7px; }
+.contracts-empty { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r3); padding: 70px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contracts-page">
+    <div class="contracts-topbar">
+        <div>
+            <div class="breadcrumb"><a href="{% url 'main' %}">Bosh sahifa</a><span>›</span><a href="{% url 'all_contracts' %}">Shartnomalar</a><span>›</span><span>Bekor qilingan</span></div>
+            <h1 class="page-heading">Bekor <em>qilingan</em></h1>
+        </div>
+    </div>
+    <div class="filter-tabs">
+        <a href="{% url 'all_contracts' %}" class="filter-tab">Hammasi <span class="count">{{ total_count }}</span></a>
+        <a href="{% url 'active_contracts' %}" class="filter-tab">Faol <span class="count">{{ active_count }}</span></a>
+        <a href="{% url 'finished_contracts' %}" class="filter-tab">Yakunlangan <span class="count">{{ finished_count }}</span></a>
+        <a href="{% url 'cancelled_contracts' %}" class="filter-tab active">Bekor qilingan <span class="count">{{ cancelled_count }}</span></a>
+    </div>
+    <div class="contracts-list">
+        {% for contract in contracts %}
+        <div class="contract-card" style="animation-delay:{{ forloop.counter0 }}00ms">
+            <div>
+                <div class="cc-header">
+                    <a href="{% url 'contract_detail' contract.id %}" class="cc-title">{{ contract.title }}</a>
+                    <span class="badge status-cancelled">● Bekor qilingan</span>
+                </div>
+                <div class="cc-meta">
+                    <div class="cc-meta-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{ contract.start_date }}</div>
+                    <div class="cc-meta-item">#{{ contract.id }}</div>
+                </div>
+                <div class="cc-parties">
+                    <div class="cc-avatar" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">{{ contract.client.username|slice:":2"|upper }}</div>
+                    <div><div class="cc-party-role">Mijoz</div><div class="cc-party-name">{{ contract.client.username }}</div></div>
+                    <span style="color:var(--border);margin:0 6px;">⇄</span>
+                    <div class="cc-avatar" style="background:linear-gradient(135deg,#6b7280,#4b5563)">{{ contract.freelancer.username|slice:":2"|upper }}</div>
+                    <div><div class="cc-party-role">Frilanser</div><div class="cc-party-name">{{ contract.freelancer.username }}</div></div>
+                </div>
+                {% if contract.cancel_reason %}
+                <div class="cc-cancel-reason">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ contract.cancel_reason }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="contract-card-right">
+                <div class="cc-amount">${{ contract.amount }}</div>
+                <div class="cc-actions">
+                    <a href="{% url 'contract_detail' contract.id %}" class="btn btn-ghost btn-sm">Ko'rish</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="contracts-empty scroll-reveal">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">Ajoyib! Bekor qilingan shartnomalar yo'q</div>
+            <div class="empty-sub">Siz hali birorta shartnomani bekor qilmadingiz</div>
+            <a href="{% url 'all_contracts' %}" class="btn btn-outline" style="margin-top:6px;">Barcha shartnomalar →</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

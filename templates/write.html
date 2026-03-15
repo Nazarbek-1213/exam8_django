@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Sharh qoldirish — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.rv-wrap {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 0 24px;
+}
+.rv-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r3);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+.rv-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dk));
+}
+.rv-title {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.rv-sub {
+    font-size: .85rem;
+    color: var(--text2);
+    margin-bottom: 32px;
+}
+
+/* Stars */
+.stars-label {
+    font-size: .75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text2); margin-bottom: 12px;
+}
+.stars-row {
+    display: flex; gap: 8px; margin-bottom: 8px;
+}
+.star {
+    font-size: 2.4rem; cursor: pointer;
+    color: var(--border);
+    transition: color .15s, transform .15s;
+    background: none; border: none; padding: 0; line-height: 1;
+}
+.star:hover, .star.on { color: #f59e0b; transform: scale(1.2); }
+.star-hint {
+    font-size: .83rem; color: var(--text2);
+    font-weight: 500; min-height: 1.4em;
+    margin-bottom: 28px;
+}
+
+/* Comment */
+.comment-label {
+    font-size: .75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text2); margin-bottom: 8px;
+}
+textarea.form-input {
+    width: 100%; padding: 12px 14px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); font-family: var(--font);
+    font-size: .875rem; color: var(--text);
+    resize: vertical; min-height: 120px;
+    outline: none; transition: border-color var(--t);
+    box-sizing: border-box;
+}
+textarea.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+.rv-submit {
+    width: 100%; margin-top: 20px; padding: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    color: #fff; border: none; border-radius: 100px;
+    font-family: var(--font); font-size: .92rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    transition: all var(--t); box-shadow: 0 4px 16px var(--accent-glow);
+}
+.rv-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 26px var(--accent-glow); }
+.rv-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rv-wrap">
+    <div class="rv-card">
+        <h1 class="rv-title">⭐ Sharh qoldirish</h1>
+        <p class="rv-sub">{{ contract.freelancer.username }} bilan hamkorlik haqida fikringizni bildiring.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Stars -->
+            <div class="stars-label">Reyting bering</div>
+            <div class="stars-row" id="starRow">
+                <button type="button" class="star" data-v="1">★</button>
+                <button type="button" class="star" data-v="2">★</button>
+                <button type="button" class="star" data-v="3">★</button>
+                <button type="button" class="star" data-v="4">★</button>
+                <button type="button" class="star" data-v="5">★</button>
+            </div>
+            <div class="star-hint" id="starHint">Yulduz bosing…</div>
+            <input type="hidden" name="rating" id="ratingVal" value="0">
+
+            <!-- Comment -->
+            <div class="comment-label">Izoh (ixtiyoriy)</div>
+            <textarea class="form-input" name="comment"
+                placeholder="Hamkorlik qanday o'tdi?"></textarea>
+
+            <button type="submit" class="rv-submit" id="submitBtn" disabled>
+                ✓ Sharh yuborish
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const stars  = document.querySelectorAll('.star');
+const input  = document.getElementById('ratingVal');
+const hint   = document.getElementById('starHint');
+const submit = document.getElementById('submitBtn');
+const labels = ['', 'Yomon 😕', 'Qoniqarli 😐', 'Yaxshi 🙂', 'Juda yaxshi 😊', 'Ajoyib! 🌟'];
+let current  = 0;
+
+stars.forEach(s => {
+    s.addEventListener('mouseenter', () => paint(+s.dataset.v));
+    s.addEventListener('mouseleave', () => paint(current));
+    s.addEventListener('click', () => {
+        current = +s.dataset.v;
+        input.value = current;
+        hint.textContent = labels[current];
+        submit.disabled = false;
+        paint(current);
+    });
+});
+
+function paint(n) {
+    stars.forEach((s, i) => s.classList.toggle('on', i < n));
+}
+</script>
+{% endblock %}

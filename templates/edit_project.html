@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Loyihani tahrirlash — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+.edit-header { margin-bottom: 32px; }
+.page-eyebrow {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.page-eyebrow::before { content:''; width:18px; height:2px; background:var(--accent); border-radius:2px; }
+.edit-title { font-family: var(--serif); font-size: 1.9rem; color: var(--text); margin-bottom: 6px; }
+.edit-sub { color: var(--text2); font-size: .88rem; }
+
+.info-tip {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.22);
+    border-radius: var(--r); padding: 12px 16px;
+    font-size: .82rem; color: var(--accent);
+    margin-bottom: 28px;
+    animation: fadeUp .5s var(--spring) .1s both;
+}
+
+.edit-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 40px;
+    animation: fadeUp .6s var(--spring) both;
+}
+
+.form-section-label {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--text3);
+    display: flex; align-items: center; gap: 10px;
+    margin: 28px 0 18px;
+}
+.form-section-label:first-child { margin-top: 0; }
+.form-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+.char-count { font-size: .72rem; color: var(--text3); text-align: right; margin-top: 4px; }
+
+.form-actions {
+    display: flex; gap: 12px; justify-content: flex-end;
+    margin-top: 32px; padding-top: 28px;
+    border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .edit-wrap { padding: 32px 16px; }
+    .edit-card { padding: 24px; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-wrap">
+    <div class="edit-header animate-up">
+        <div class="page-eyebrow">✏ Tahrirlash</div>
+        <h1 class="edit-title">Loyihani yangilash</h1>
+        <p class="edit-sub">O'zgartirishlar saqlangandan so'ng darhol kuchga kiradi.</p>
+    </div>
+
+    <div class="info-tip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Siz <strong style="margin:0 4px;">"{{ project.title }}"</strong> loyihasini tahrirlayapsiz.
+    </div>
+
+    <div class="edit-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-section-label">Asosiy ma'lumotlar</div>
+
+            <div class="form-group">
+                <label class="form-label" for="title">Loyiha nomi *</label>
+                <input class="form-input" type="text" id="title" name="title"
+                       value="{{ project.title }}" required
+                       placeholder="Aniq va qisqa nom">
+            </div>
+
+            <div class="form-group" style="margin-top:16px">
+                <label class="form-label" for="description">Tavsif *</label>
+                <textarea class="form-input" id="description" name="description"
+                          rows="5" required
+                          placeholder="Loyiha haqida batafsil yozing…">{{ project.description }}</textarea>
+                <div class="char-count" id="charCount">0 / 1000</div>
+            </div>
+
+            <div class="form-section-label">Moliyaviy ma'lumotlar</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="budget">Byudjet ($)</label>
+                    <input class="form-input" type="number" id="budget" name="budget"
+                           value="{{ project.budget }}" placeholder="500" min="0" step="10">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="deadline">Muddat</label>
+                    <input class="form-input" type="date" id="deadline" name="deadline"
+                           value="{{ project.deadline }}">
+                </div>
+            </div>
+
+            <div class="form-section-label">Qo'shimcha</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="category">Kategoriya</label>
+                    <select class="form-input" id="category" name="category">
+                        <option value="">Tanlang…</option>
+                        <option value="web"       {% if project.category == 'web' %}selected{% endif %}>Veb dasturlash</option>
+                        <option value="mobile"    {% if project.category == 'mobile' %}selected{% endif %}>Mobil ilova</option>
+                        <option value="design"    {% if project.category == 'design' %}selected{% endif %}>Dizayn</option>
+                        <option value="writing"   {% if project.category == 'writing' %}selected{% endif %}>Kontent / Yozuv</option>
+                        <option value="marketing" {% if project.category == 'marketing' %}selected{% endif %}>Marketing</option>
+                        <option value="data"      {% if project.category == 'data' %}selected{% endif %}>Data tahlil</option>
+                        <option value="other"     {% if project.category == 'other' %}selected{% endif %}>Boshqa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="skills">Ko'nikmalar (vergul bilan)</label>
+                    <input class="form-input" type="text" id="skills" name="skills"
+                           value="{{ project.skills_str }}"
+                           placeholder="Django, React, Figma">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'myprojects' %}" class="btn btn-ghost">Bekor qilish</a>
+                <a href="{% url 'project_delete' project.id %}" class="btn btn-danger">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    O'chirish
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const desc = document.getElementById('description');
+    const cnt  = document.getElementById('charCount');
+    function upd() {
+        const n = desc.value.length;
+        cnt.textContent = n + ' / 1000';
+        cnt.style.color = n > 900 ? 'var(--danger)' : n > 700 ? 'var(--warning)' : '';
+    }
+    desc.addEventListener('input', upd);
+    upd();
+</script>
+{% endblock %}

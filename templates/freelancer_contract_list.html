@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Shartnomalar — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.contracts-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+.page-eyebrow {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.page-eyebrow::before { content:''; width:18px; height:2px; background:var(--accent); border-radius:2px; }
+.page-title { font-family: var(--serif); font-size: clamp(1.8rem,4vw,2.3rem); color: var(--text); margin-bottom: 6px; }
+.page-sub { color: var(--text2); font-size: .88rem; margin-bottom: 36px; }
+
+/* Tabs */
+.ctabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 28px; }
+.ctab {
+    padding: 7px 18px; border-radius: 100px;
+    font-size: .82rem; font-weight: 500;
+    border: 1.5px solid var(--border); background: var(--surface); color: var(--text2);
+    cursor: pointer; transition: all var(--t); text-decoration: none;
+    display: flex; align-items: center; gap: 7px;
+}
+.ctab:hover { border-color: var(--accent); color: var(--accent); }
+.ctab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ctab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    border-radius: 100px; font-size: .68rem; font-weight: 700;
+}
+.ctab.active .ctab-count { background: rgba(255,255,255,.25); }
+.ctab:not(.active) .ctab-count { background: var(--bg); color: var(--text3); }
+
+/* Contract cards */
+.contracts-list { display: flex; flex-direction: column; gap: 14px; }
+.contract-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 20px 24px;
+    display: grid; grid-template-columns: 12px 1fr auto;
+    align-items: center; gap: 18px;
+    transition: all var(--t);
+}
+.contract-card:hover { border-color: rgba(29,191,115,.3); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+
+.c-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-active   { background: var(--success); box-shadow: 0 0 0 3px rgba(29,191,115,.2); }
+.dot-pending  { background: var(--warning); box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+.dot-done     { background: var(--text3); }
+.dot-rejected { background: var(--danger); }
+
+.c-info { min-width: 0; }
+.c-title { font-weight: 700; font-size: .92rem; color: var(--text); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-meta { display: flex; flex-wrap: wrap; gap: 14px; }
+.c-meta-item { display: flex; align-items: center; gap: 4px; font-size: .75rem; color: var(--text3); }
+
+.c-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.c-amount { font-family: var(--serif); font-size: 1.2rem; color: var(--accent); }
+.c-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 100px;
+    font-size: .72rem; font-weight: 600; white-space: nowrap;
+}
+.badge-active   { background: var(--accent-lt); color: var(--accent); border: 1px solid rgba(29,191,115,.2); }
+.badge-pending  { background: rgba(245,158,11,.07); color: var(--warning); border: 1px solid rgba(245,158,11,.2); }
+.badge-done     { background: var(--bg); color: var(--text3); border: 1px solid var(--border); }
+.badge-rejected { background: rgba(239,68,68,.07); color: var(--danger); border: 1px solid rgba(239,68,68,.18); }
+
+/* Progress */
+.c-progress { grid-column: 1 / -1; }
+.c-progress-bar { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
+.c-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dk));
+    border-radius: 2px;
+    transition: width 1.2s var(--spring);
+}
+.c-progress-label { font-size: .7rem; color: var(--text3); text-align: right; margin-top: 3px; }
+
+@media (max-width: 600px) {
+    .contracts-wrap { padding: 32px 16px; }
+    .contract-card { grid-template-columns: 10px 1fr; grid-template-rows: auto auto; }
+    .c-right { grid-column: 2; flex-direction: row; align-items: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contracts-wrap">
+    <div class="page-eyebrow animate-up">📄 Shartnomalar</div>
+    <h1 class="page-title animate-up">Mening shartnomalarim</h1>
+    <p class="page-sub animate-up">Qabul qilingan loyihalar va ularning joriy holati.</p>
+
+    <div class="ctabs">
+        <a href="?status=" class="ctab {% if not request.GET.status %}active{% endif %}">
+            Barchasi <span class="ctab-count">{{ contracts|length }}</span>
+        </a>
+        <a href="?status=active" class="ctab {% if request.GET.status == 'active' %}active{% endif %}">
+            🟢 Faol <span class="ctab-count">{{ active_count|default:0 }}</span>
+        </a>
+        <a href="?status=pending" class="ctab {% if request.GET.status == 'pending' %}active{% endif %}">
+            🟡 Kutilmoqda <span class="ctab-count">{{ pending_count|default:0 }}</span>
+        </a>
+        <a href="?status=done" class="ctab {% if request.GET.status == 'done' %}active{% endif %}">
+            ✅ Tugallangan <span class="ctab-count">{{ done_count|default:0 }}</span>
+        </a>
+    </div>
+
+    {% if contracts %}
+    <div class="contracts-list">
+        {% for contract in contracts %}
+        <div class="contract-card scroll-reveal">
+            <div class="c-dot
+                {% if contract.status == 'active' %}dot-active
+                {% elif contract.status == 'pending' %}dot-pending
+                {% elif contract.status == 'done' %}dot-done
+                {% else %}dot-rejected{% endif %}">
+            </div>
+
+            <div class="c-info">
+                <div class="c-title">{{ contract.project.title }}</div>
+                <div class="c-meta">
+                    <span class="c-meta-item">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        {{ contract.client.username }}
+                    </span>
+                    <span class="c-meta-item">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {{ contract.created_at|date:"d M, Y" }}
+                    </span>
+                    <span class="c-meta-item">Muddat: {{ contract.deadline|default:"—" }}</span>
+                </div>
+            </div>
+
+            <div class="c-right">
+                <div class="c-amount">${{ contract.amount }}</div>
+                <span class="c-badge
+                    {% if contract.status == 'active' %}badge-active
+                    {% elif contract.status == 'pending' %}badge-pending
+                    {% elif contract.status == 'done' %}badge-done
+                    {% else %}badge-rejected{% endif %}">
+                    {% if contract.status == 'active' %}Faol
+                    {% elif contract.status == 'pending' %}Kutilmoqda
+                    {% elif contract.status == 'done' %}Tugallangan
+                    {% else %}Rad etildi{% endif %}
+                </span>
+            </div>
+
+            {% if contract.status == 'active' %}
+            <div class="c-progress">
+                <div class="c-progress-bar">
+                    <div class="c-progress-fill" style="width:{{ contract.progress|default:40 }}%"></div>
+                </div>
+                <div class="c-progress-label">{{ contract.progress|default:40 }}% bajarildi</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📄</div>
+        <div class="empty-title">Shartnomalar yo'q</div>
+        <p class="empty-sub">Loyihalarga ariza yuboring va qabul qilinganingizda shartnomalar shu yerda ko'rinadi.</p>
+        <a href="{% url 'main_freelancer' %}" class="btn btn-primary" style="margin-top:8px">Loyihalarni ko'rish →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

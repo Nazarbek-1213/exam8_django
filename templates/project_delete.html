@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Loyihani o'chirish — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.del-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 80px 24px;
+}
+.del-card {
+    background: var(--surface);
+    border: 1px solid rgba(239,68,68,.2);
+    border-radius: var(--r3);
+    padding: 44px 40px;
+    text-align: center;
+    animation: fadeUp .6s var(--spring) both;
+    position: relative; overflow: hidden;
+}
+.del-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--danger), #f97316);
+}
+.del-icon-wrap {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(239,68,68,.07);
+    border: 2px solid rgba(239,68,68,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin: 0 auto 24px;
+    animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.2); }
+    50%      { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+}
+.del-title {
+    font-family: var(--serif);
+    font-size: 1.6rem; color: var(--text); margin-bottom: 10px;
+}
+.del-sub { color: var(--text2); font-size: .9rem; line-height: 1.7; margin-bottom: 24px; }
+
+.del-project-preview {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(239,68,68,.05); border: 1px solid rgba(239,68,68,.15);
+    border-radius: var(--r); padding: 12px 16px;
+    margin-bottom: 24px; text-align: left;
+}
+.del-project-name { font-weight: 700; color: var(--danger); font-size: .9rem; }
+
+.warning-box {
+    background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.2);
+    border-radius: var(--r); padding: 14px 18px;
+    margin-bottom: 28px; text-align: left;
+}
+.warning-box-title {
+    font-size: .75rem; font-weight: 700; color: var(--warning);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.warning-box ul { display: flex; flex-direction: column; gap: 5px; }
+.warning-box li {
+    font-size: .82rem; color: var(--text2);
+    display: flex; align-items: center; gap: 8px;
+}
+.warning-box li::before { content: '•'; color: var(--warning); }
+
+.del-actions { display: flex; flex-direction: column; gap: 10px; }
+.btn-confirm-del {
+    width: 100%; padding: 13px;
+    background: var(--danger); color: #fff; border: none;
+    border-radius: 100px; font-family: var(--font);
+    font-size: .9rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all var(--t);
+}
+.btn-confirm-del:hover {
+    background: #dc2626; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239,68,68,.3);
+}
+.btn-confirm-del:active { transform: scale(.97); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="del-wrap">
+    <div class="del-card">
+        <div class="del-icon-wrap">🗑</div>
+        <h1 class="del-title">Rostdan o'chirasizmi?</h1>
+        <p class="del-sub">Bu amalni qaytarib bo'lmaydi. Quyidagi loyiha butunlay o'chiriladi:</p>
+
+        <div class="del-project-preview">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger);flex-shrink:0"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <div class="del-project-name">{{ project.title }}</div>
+        </div>
+
+        <div class="warning-box">
+            <div class="warning-box-title">
+                ⚠ O'chirilganda yo'qoladi:
+            </div>
+            <ul>
+                <li>Barcha arizalar ({{ project.bids.count|default:0 }} ta)</li>
+                <li>Loyiha tavsifi va fayllari</li>
+                <li>Shartnomalar va muloqotlar</li>
+            </ul>
+        </div>
+
+        <div class="del-actions">
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm-del">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Ha, o'chiraman
+                </button>
+            </form>
+            <a href="{% url 'myprojects' %}" class="btn btn-ghost" style="justify-content:center">
+                Bekor qilish
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

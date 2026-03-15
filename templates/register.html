@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block title %}Ro'yxatdan o'tish — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-wrap {
+    min-height: calc(100vh - 68px);
+    display: grid; grid-template-columns: 1fr 1fr;
+}
+
+/* Left decorative */
+.auth-left {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 60px;
+    background: linear-gradient(145deg, var(--surface2) 0%, #d1fae5 100%);
+    position: relative; overflow: hidden;
+}
+.auth-left::before {
+    content: '';
+    position: absolute; top: 20%; left: -20%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(29,191,115,.14) 0%, transparent 70%);
+    pointer-events: none;
+    animation: orb 9s ease-in-out infinite;
+}
+@keyframes orb { 0%,100%{transform:translate(0,0)} 50%{transform:translate(8%,5%)} }
+
+.auth-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    margin-bottom: 20px;
+}
+.auth-eyebrow::before { content:''; width:22px; height:2px; background:var(--accent); border-radius:2px; }
+
+.auth-title {
+    font-family: var(--serif);
+    font-size: clamp(2rem,4vw,3rem);
+    line-height: 1.15; margin-bottom: 16px; color: var(--text);
+}
+.auth-title em { color: var(--accent); font-style: italic; }
+
+.auth-sub {
+    color: var(--text2); font-size: .95rem; line-height: 1.7;
+    max-width: 380px; margin-bottom: 40px;
+}
+
+.auth-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+.astat { display: flex; flex-direction: column; gap: 4px; }
+.astat-num { font-family: var(--serif); font-size: 1.75rem; color: var(--text); }
+.astat-label { font-size: .77rem; color: var(--text3); font-weight: 500; }
+
+/* Right form */
+.auth-right {
+    background: var(--surface); border-left: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px 50px;
+}
+.auth-form-card {
+    width: 100%; max-width: 440px;
+    animation: fadeUp .7s var(--spring) both;
+}
+.auth-form-title {
+    font-family: var(--serif); font-size: 1.6rem; color: var(--text);
+    margin-bottom: 6px;
+}
+.auth-form-sub {
+    font-size: .875rem; color: var(--text2); margin-bottom: 28px;
+}
+.auth-form-sub a { color: var(--accent); font-weight: 600; transition: opacity var(--t); }
+.auth-form-sub a:hover { opacity: .75; }
+
+/* Role picker */
+.role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.role-option { display: none; }
+.role-label {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 16px; background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: var(--r); cursor: pointer; transition: all var(--t);
+    font-size: .84rem; color: var(--text2); font-weight: 500;
+}
+.role-label .rl-icon { font-size: 1.5rem; }
+.role-label:hover {
+    border-color: var(--accent); color: var(--text); background: var(--accent-lt);
+}
+.role-option:checked + .role-label {
+    border-color: var(--accent); background: var(--accent-lt);
+    color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Major field slide */
+.major-field { overflow: hidden; max-height: 0; opacity: 0; transition: max-height .4s ease, opacity .3s ease; }
+.major-field.show { max-height: 90px; opacity: 1; }
+
+.register-btn {
+    width: 100%; padding: 13px; margin-top: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    color: #fff; border: none; border-radius: 100px;
+    font-family: var(--font); font-size: .9rem; font-weight: 700;
+    cursor: pointer; transition: all var(--t);
+    box-shadow: 0 4px 16px var(--accent-glow);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.register-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px var(--accent-glow); }
+.register-btn:active { transform: scale(.97); }
+
+@media (max-width: 768px) {
+    .auth-wrap { grid-template-columns: 1fr; }
+    .auth-left { display: none; }
+    .auth-right { padding: 40px 24px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+    <!-- Left -->
+    <div class="auth-left">
+        <div class="auth-eyebrow animate-up">Yangi boshlanish</div>
+        <h1 class="auth-title animate-up d1">
+            Professional<br><em>freelancing</em><br>platformasi
+        </h1>
+        <p class="auth-sub animate-up d2">
+            O'z mahoratingizni namoyish eting va dunyo bo'ylab mijozlar bilan ishlang. Yoki eng yaxshi mutaxassislarni toping.
+        </p>
+        <div class="auth-stats animate-up d3">
+            <div class="astat">
+                <div class="astat-num">2.4K+</div>
+                <div class="astat-label">Freelancerlar</div>
+            </div>
+            <div class="astat">
+                <div class="astat-num">890+</div>
+                <div class="astat-label">Faol loyihalar</div>
+            </div>
+            <div class="astat">
+                <div class="astat-num">98%</div>
+                <div class="astat-label">Muvaffaqiyat</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right -->
+    <div class="auth-right">
+        <div class="auth-form-card">
+            <div class="auth-form-title">Hisob yaratish</div>
+            <p class="auth-form-sub">
+                Allaqachon hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a>
+            </p>
+
+            {% if message %}
+            <div class="alert alert-error" style="margin-bottom:18px;">⚠ {{ message }}</div>
+            {% endif %}
+
+            <form method="POST" style="display:flex;flex-direction:column;gap:16px;">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label">Men kimman?</label>
+                    <div class="role-picker">
+                        <div>
+                            <input class="role-option" type="radio" name="role" value="freelancer" id="r-fl">
+                            <label class="role-label" for="r-fl">
+                                <span class="rl-icon">💼</span> Freelancer
+                            </label>
+                        </div>
+                        <div>
+                            <input class="role-option" type="radio" name="role" value="client" id="r-cl">
+                            <label class="role-label" for="r-cl">
+                                <span class="rl-icon">🏢</span> Mijoz
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group major-field" id="majorField">
+                    <label class="form-label" for="major">Mutaxassislik</label>
+                    <input class="form-input" type="text" name="major" id="major"
+                           placeholder="Web dasturlash, Dizayn…">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username">Foydalanuvchi nomi</label>
+                    <input class="form-input" type="text" name="username" id="username"
+                           placeholder="example_user" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-input" type="email" name="email" id="email"
+                           placeholder="siz@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Parol</label>
+                    <input class="form-input" type="password" name="password" id="password"
+                           placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password2">Parolni tasdiqlash</label>
+                    <input class="form-input" type="password" name="password2" id="password2"
+                           placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="register-btn">
+                    Ro'yxatdan o'tish
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const fl = document.getElementById('r-fl');
+    const cl = document.getElementById('r-cl');
+    const mf = document.getElementById('majorField');
+    function toggle() { mf.classList.toggle('show', fl.checked); }
+    fl.addEventListener('change', toggle);
+    cl.addEventListener('change', toggle);
+</script>
+{% endblock %}

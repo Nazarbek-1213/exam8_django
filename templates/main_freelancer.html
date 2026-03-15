@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+{% block title %}Bosh sahifa — Freelancer | EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.fl-wrap {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 28px;
+}
+
+/* ── Notifications ── */
+.notif-bar {
+    margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    animation: fadeUp .4s var(--spring) both;
+}
+.notif-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-radius: var(--r2);
+    border: 1.5px solid;
+    font-size: .875rem;
+    position: relative;
+}
+.notif-accepted {
+    background: #f0fdf4; border-color: rgba(29,191,115,.3); color: #166534;
+}
+.notif-rejected {
+    background: #fef2f2; border-color: rgba(239,68,68,.25); color: #991b1b;
+}
+.notif-pending {
+    background: #fffbeb; border-color: rgba(245,158,11,.25); color: #92400e;
+}
+.notif-icon { font-size: 1.3rem; flex-shrink: 0; }
+.notif-body { flex: 1; }
+.notif-title { font-weight: 700; margin-bottom: 2px; }
+.notif-sub   { font-size: .78rem; opacity: .75; }
+.notif-action {
+    padding: 6px 14px; border-radius: 100px;
+    background: var(--accent); color: #fff;
+    font-size: .78rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity var(--t);
+}
+.notif-action:hover { opacity: .85; }
+.notif-action.secondary {
+    background: transparent;
+    border: 1.5px solid currentColor;
+    color: inherit;
+}
+
+/* ── Hero ── */
+.fl-hero {
+    background: linear-gradient(135deg, #0f1f14 0%, #1a3a24 100%);
+    border-radius: 20px;
+    padding: 40px 44px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    margin-bottom: 32px;
+    position: relative; overflow: hidden;
+    animation: fadeUp .6s var(--spring) both;
+}
+.fl-hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(29,191,115,.18) 0%, transparent 65%);
+    pointer-events: none;
+}
+.fl-hero-left { position: relative; z-index: 1; }
+.fl-hero-greeting {
+    font-size: .78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.fl-hero-greeting::before {
+    content: ''; width: 18px; height: 2px;
+    background: var(--accent); border-radius: 2px;
+}
+.fl-hero-title {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    color: #fff; line-height: 1.2; margin-bottom: 10px;
+}
+.fl-hero-title em { color: var(--accent); font-style: italic; }
+.fl-hero-sub { color: rgba(255,255,255,.5); font-size: .875rem; line-height: 1.6; }
+.fl-hero-right {
+    display: flex; gap: 16px; flex-shrink: 0; position: relative; z-index: 1;
+}
+.fl-stat-box {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 18px 22px;
+    text-align: center; min-width: 100px;
+    backdrop-filter: blur(8px);
+}
+.fl-stat-num {
+    font-family: var(--serif); font-size: 1.9rem; color: #fff; line-height: 1; margin-bottom: 4px;
+}
+.fl-stat-num span { color: var(--accent); }
+.fl-stat-label { font-size: .72rem; color: rgba(255,255,255,.45); font-weight: 500; }
+
+/* ── My bids section ── */
+.bids-section { margin-bottom: 32px; animation: fadeUp .5s var(--spring) .05s both; }
+.section-head {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.section-title {
+    font-family: var(--serif); font-size: 1.2rem; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+}
+.section-title::before {
+    content: ''; width: 4px; height: 18px;
+    background: var(--accent); border-radius: 2px;
+}
+.section-link { font-size: .8rem; color: var(--accent); font-weight: 600; transition: opacity var(--t); }
+.section-link:hover { opacity: .7; }
+
+.bids-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px;
+}
+.bid-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--r2); padding: 16px 18px;
+    transition: all var(--t);
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.bid-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.06); }
+.bid-card-accepted { border-color: rgba(29,191,115,.4); background: #f0fdf4; }
+.bid-card-rejected { border-color: rgba(239,68,68,.3); background: #fef2f2; }
+.bid-card-pending  { border-color: rgba(245,158,11,.3); }
+
+.bid-card-top { display: flex; align-items: center; justify-content: space-between; }
+.bid-card-project { font-size: .88rem; font-weight: 700; color: var(--text); }
+.bid-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px;
+    font-size: .7rem; font-weight: 700;
+}
+.badge-accepted { background: var(--accent-lt); color: var(--accent); }
+.badge-rejected  { background: #fee2e2; color: #ef4444; }
+.badge-pending   { background: #fef3c7; color: #d97706; }
+
+.bid-card-price { font-family: var(--serif); font-size: 1.1rem; color: var(--accent); }
+.bid-card-msg   { font-size: .78rem; color: var(--text2); line-height: 1.5; }
+
+.bid-contract-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 100px;
+    background: var(--accent); color: #fff;
+    font-size: .78rem; font-weight: 700;
+    text-decoration: none; width: fit-content;
+    transition: opacity var(--t);
+}
+.bid-contract-link:hover { opacity: .85; }
+
+/* ── Filter tabs ── */
+.filter-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+    animation: fadeUp .5s var(--spring) .1s both;
+}
+.ftab {
+    padding: 7px 16px; border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text2);
+    font-size: .8rem; font-weight: 600; cursor: pointer; transition: all var(--t);
+    text-decoration: none;
+}
+.ftab:hover, .ftab.active {
+    border-color: var(--accent); background: var(--accent-lt); color: var(--accent);
+}
+
+/* ── Projects grid ── */
+.projects-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
+}
+.proj-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 22px 24px;
+    transition: all var(--t); animation: fadeUp .5s var(--spring) both;
+    display: flex; flex-direction: column; gap: 12px;
+    text-decoration: none; color: inherit;
+    position: relative; overflow: hidden;
+}
+.proj-card::after {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--accent);
+    transform: scaleY(0); transform-origin: bottom; transition: transform var(--t);
+}
+.proj-card:hover { border-color: rgba(29,191,115,.3); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.07); }
+.proj-card:hover::after { transform: scaleY(1); }
+
+.proj-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.proj-category {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--accent);
+    background: var(--accent-lt); padding: 3px 10px; border-radius: 100px;
+    border: 1px solid rgba(29,191,115,.2);
+}
+.proj-budget { font-family: var(--serif); font-size: 1.15rem; color: var(--text); white-space: nowrap; }
+.proj-budget small { font-size: .72rem; color: var(--text3); font-family: var(--font); }
+.proj-title {
+    font-size: .95rem; font-weight: 700; color: var(--text); line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.proj-desc {
+    font-size: .82rem; color: var(--text2); line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.proj-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 10px; border-top: 1px solid var(--border);
+}
+.proj-meta { display: flex; gap: 12px; }
+.proj-meta-item { display: flex; align-items: center; gap: 4px; font-size: .74rem; color: var(--text3); }
+.proj-arrow {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: .85rem; transition: all var(--t);
+}
+.proj-card:hover .proj-arrow { background: var(--accent); color: #fff; transform: translateX(2px); }
+
+@media (max-width: 768px) {
+    .fl-hero { flex-direction: column; padding: 28px 24px; }
+    .fl-hero-right { width: 100%; justify-content: space-between; }
+    .fl-stat-box { flex: 1; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .bids-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fl-wrap">
+
+    <!-- ═══ NOTIFICATIONS ═══ -->
+    {% if my_bids_list %}
+    <div class="notif-bar">
+        {% for bid in my_bids_list %}
+            {% if bid.status == 'accepted' %}
+            <div class="notif-item notif-accepted">
+                <div class="notif-icon">🎉</div>
+                <div class="notif-body">
+                    <div class="notif-title">Arizangiz qabul qilindi!</div>
+                    <div class="notif-sub">
+                        "{{ bid.project.title }}" loyihasi — ${{ bid.price }}
+                    </div>
+                </div>
+                {% if bid.project.contract %}
+                <a href="{% url 'contract_detail' bid.project.contract.id %}" class="notif-action">
+                    Shartnomani ko'rish →
+                </a>
+                {% endif %}
+            </div>
+            {% elif bid.status == 'rejected' %}
+            <div class="notif-item notif-rejected">
+                <div class="notif-icon">❌</div>
+                <div class="notif-body">
+                    <div class="notif-title">Ariza rad etildi</div>
+                    <div class="notif-sub">"{{ bid.project.title }}" loyihasi</div>
+                </div>
+                <a href="{% url 'main_freelancer' %}" class="notif-action secondary">
+                    Boshqa loyihalar
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ═══ HERO ═══ -->
+    <div class="fl-hero">
+        <div class="fl-hero-left">
+            <div class="fl-hero-greeting">Xush kelibsiz</div>
+            <h1 class="fl-hero-title">
+                Salom, <em>{{ request.user.username }}</em>!<br>
+                Bugun yangi loyiha toping
+            </h1>
+            <p class="fl-hero-sub">Eng yangi loyihalar sizni kutmoqda. Bid yuboring va ishlang.</p>
+        </div>
+        <div class="fl-hero-right">
+            <div class="fl-stat-box">
+                <div class="fl-stat-num">{{ total_bids }}<span>+</span></div>
+                <div class="fl-stat-label">Arizalarim</div>
+            </div>
+            <div class="fl-stat-box">
+                <div class="fl-stat-num">{{ accepted_bids }}<span></span></div>
+                <div class="fl-stat-label">Qabul qilingan</div>
+            </div>
+            <div class="fl-stat-box">
+                <div class="fl-stat-num">{{ avg_rating|floatformat:1 }}<span>/5</span></div>
+                <div class="fl-stat-label">Reytingim</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MY BIDS ═══ -->
+    {% if my_bids_list %}
+    <div class="bids-section">
+        <div class="section-head">
+            <div class="section-title">Mening arizalarim</div>
+            <a href="#" class="section-link">Hammasini ko'rish →</a>
+        </div>
+        <div class="bids-grid">
+            {% for bid in my_bids_list %}
+            <div class="bid-card bid-card-{{ bid.status }}">
+                <div class="bid-card-top">
+                    <div class="bid-card-project">{{ bid.project.title|truncatechars:30 }}</div>
+                    <span class="bid-status-badge badge-{{ bid.status }}">
+                        {% if bid.status == 'accepted' %}✅ Qabul{% endif %}
+                        {% if bid.status == 'rejected' %}❌ Rad{% endif %}
+                        {% if bid.status == 'pending' %}⏳ Kutilmoqda{% endif %}
+                    </span>
+                </div>
+                <div class="bid-card-price">${{ bid.price }}</div>
+                {% if bid.xabar %}
+                <div class="bid-card-msg">{{ bid.xabar|truncatechars:80 }}</div>
+                {% endif %}
+                {% if bid.status == 'accepted' and bid.project.contract %}
+                <a href="{% url 'contract_detail' bid.project.contract.id %}"
+                   class="bid-contract-link">
+                    📄 Shartnomani ko'rish
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══ FILTER TABS ═══ -->
+    <div class="filter-tabs">
+        <a href="?category=" class="ftab {% if not active_category %}active{% endif %}">Barchasi</a>
+        <a href="?category=web" class="ftab {% if active_category == 'web' %}active{% endif %}">💻 Veb</a>
+        <a href="?category=design" class="ftab {% if active_category == 'design' %}active{% endif %}">🎨 Dizayn</a>
+        <a href="?category=mobile" class="ftab {% if active_category == 'mobile' %}active{% endif %}">📱 Mobil</a>
+        <a href="?category=writing" class="ftab {% if active_category == 'writing' %}active{% endif %}">✍️ Kontent</a>
+        <a href="?category=data" class="ftab {% if active_category == 'data' %}active{% endif %}">📊 Data</a>
+        <a href="?category=ai" class="ftab {% if active_category == 'ai' %}active{% endif %}">🤖 AI</a>
+    </div>
+
+    <!-- ═══ PROJECTS ═══ -->
+    <div class="section-head">
+        <div class="section-title">Loyihalar</div>
+        <a href="{% url 'search' %}" class="section-link">Qidirib ko'rish →</a>
+    </div>
+
+    <div class="projects-grid">
+        {% for p in projects %}
+        <a href="{% url 'project_detail' p.pk %}" class="proj-card"
+           style="animation-delay:{{ forloop.counter0 }}00ms">
+            <div class="proj-card-top">
+                <span class="proj-category">{{ p.category|default:"Umumiy" }}</span>
+                <span class="proj-budget">
+                    {% if p.budget_max %}${{ p.budget_max }}{% else %}—{% endif %}
+                    <small> budjet</small>
+                </span>
+            </div>
+            <div class="proj-title">{{ p.title }}</div>
+            <div class="proj-desc">{{ p.description }}</div>
+            <div class="proj-footer">
+                <div class="proj-meta">
+                    <span class="proj-meta-item">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        {{ p.bids.count }} ariza
+                    </span>
+                    {% if p.deadline %}
+                    <span class="proj-meta-item">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {{ p.deadline }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="proj-arrow">→</div>
+            </div>
+        </a>
+        {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text3);">
+            <div style="font-size:2.5rem;margin-bottom:12px;">📭</div>
+            <div style="font-size:.9rem;">Hozircha loyihalar yo'q</div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

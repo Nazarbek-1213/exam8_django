@@ -1,0 +1,280 @@
+from itertools import count
+
+from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Q
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+
+from Bid.models import Bid
+from Contracts.models import Contract
+
+from Projects.models import *
+from Review.models import Review
+from Users.models import FreelancerProfile
+
+User = get_user_model()
+
+def LoginView(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+
+            if user.role == 'freelancer':
+                return redirect('main_freelancer')
+            else:
+                return redirect('main_client')
+        else:
+            return render(request, "login.html", {"message": "Username yoki parol noto‘g‘ri"})
+
+    return render(request, "login.html")
+
+
+def RegisterView(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        role = request.POST.get("role")
+        password = request.POST.get("password")
+        password2 = request.POST.get("password2")
+        email = request.POST.get("email")
+        major = request.POST.get("major")
+
+        if not role:
+            return render(request, "register.html", {"message": "Rol tanlash kerak"})
+
+        if password != password2:
+            return render(request, "register.html", {"message": "Parollar mos kelmadi"})
+
+        if User.objects.filter(email=email).exists():
+            return render(request, "register.html", {"message": "Bu email allaqachon mavjud"})
+
+        if User.objects.filter(username=username).exists():
+            return render(request, "register.html", {"message": "Username mavjud"})
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+            role=role
+        )
+
+        if role == "freelancer":
+            FreelancerProfile.objects.create(
+                user=user,
+                major=major
+            )
+
+        login(request, user)
+        if role == 'freelancer':
+            return redirect('main_freelancer')
+        else:
+            return redirect('main_client')
+
+    return render(request, "register.html")
+
+def LogoutView(request):
+    logout(request)
+    return render(request,'login.html')
+
+
+def ProfileView(request):
+    user = request.user
+
+    context = {
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+    }
+    return render(request, "profile.html", context)
+
+
+def EditProfile(request):
+    user=request.user
+    if request.method=='POST':
+     username=request.POST.get('username')
+     role=request.POST.get('role')
+     email=request.POST.get('email')
+     bio=request.POST.get('bio')
+
+     user.username=username
+     user.role=role
+     user.email=email
+     user.bio=bio
+
+     user.save()
+     return redirect('profile')
+    return render(request, 'edit_profile.html')
+
+
+def SearchView(request):
+    user = request.user
+    q = request.GET.get('q', '')
+
+    context = {'query': q}
+
+    if user.role == 'freelancer':
+        projects = Project.objects.filter(
+            Q(title__icontains=q) | Q(description__icontains=q)
+        )
+        context['projects'] = projects
+
+    elif user.role == 'client':
+
+        freelancers = FreelancerProfile.objects.filter(
+            Q(major__icontains=q) | Q(bio__icontains=q)
+        )
+        context['freelancers'] = freelancers
+
+
+    return render(request, 'search.html', context)
+
+def main_redirect(request):
+    if  request.user.is_authenticated:
+        return redirect('login')
+
+    if request.user.role == 'freelancer':
+        return redirect('main_freelancer')
+    else:
+        return redirect('main_client')
+
+def liveProView(request):
+    from Projects.models import Project
+    from Bid.models import Bid
+    from Contracts.models import Contract
+    from Review.models import Review
+    from Users.models import FreelancerProfile
+    from django.db.models import Avg
+
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('login')
+
+    if user.role == 'client':
+        live_projects    = Project.objects.filter(client=user, status='open').count()
+        finished_projects = Project.objects.filter(client=user, status='completed').count()
+        freelancer_count = Contract.objects.filter(
+            client=user
+        ).values('freelancer').distinct().count()
+        avg_rating = Review.objects.filter(
+            client=user
+        ).aggregate(avg=Avg('rating'))['avg'] or 0
+
+        my_projects = Project.objects.filter(client=user).order_by('-created_at')[:10]
+        top_freelancers = FreelancerProfile.objects.all()[:5]
+
+        return render(request, 'main_client.html', {
+            'live_projects':     live_projects,
+            'finished_projects': finished_projects,
+            'freelancer_count':  freelancer_count,
+            'avg_rating':        avg_rating,
+            'my_projects':       my_projects,
+            'top_freelancers':   top_freelancers,
+        })
+
+    return redirect('main_freelancer')
+def AvgRateView(request):
+    user = request.user
+    if user.role == 'client':
+        avg_rating = Review.objects.filter(
+            freelancer=user
+        ).aggregate(Avg("rating"), client=user)
+
+        context = {
+            "avg_rating": avg_rating
+        }
+        return render(request,'main_client.html',context)
+
+def FinishedWorkView(request):
+    user = request.user
+    if user.role == 'client':
+        projects=Project.objects.filter(status='completed').count()
+        return render(request,'main_client.html',{'project':count(projects)})
+
+def FreelancerView(request):
+    user = request.user
+    if user.role == 'client':
+        bid=Contract.objects.filter(freelancer=count(Contract.freelancer))
+        return render(request,'main_client.html',{'project':count(bid)})
+
+
+@login_required(login_url='login')
+def AllProview(request):
+    from Bid.models import Bid
+    from Review.models import Review
+    from Users.models import FreelancerProfile
+    from django.db.models import Avg
+
+    user = request.user
+    category = request.GET.get('category', '')
+    projects = Project.objects.all().order_by('-created_at')
+
+    if user.role == 'freelancer':
+        if category:
+            projects = projects.filter(category=category)
+    else:
+        projects = Project.objects.none()
+
+    my_bids_list = Bid.objects.filter(
+        freelancer=user
+    ).select_related('project').order_by('-created_at')[:10]
+
+    total_bids = Bid.objects.filter(freelancer=user).count()
+    accepted_bids = Bid.objects.filter(freelancer=user, status='accepted').count()
+
+    try:
+        profile = FreelancerProfile.objects.get(user=user)
+        avg = Review.objects.filter(freelancer=profile).aggregate(avg=Avg('rating'))
+        avg_rating = avg['avg'] or 0
+    except FreelancerProfile.DoesNotExist:
+        avg_rating = 0
+
+    return render(request, 'main_freelancer.html', {
+        'projects': projects,
+        'active_category': category,
+        'avg_rating': avg_rating,
+        'my_bids_list': my_bids_list,
+        'total_bids': total_bids,
+        'accepted_bids': accepted_bids,
+    })
+
+
+@login_required
+def logo_redirect(request):
+    user = request.user
+    if user.role == 'freelancer':
+        return redirect('main_freelancer')
+    else:
+        return redirect('main_client')
+
+
+def UserProfileView(request, pk):
+    from django.shortcuts import get_object_or_404
+    profile_user = get_object_or_404(User, pk=pk)
+    context = {
+        'profile_user': profile_user,
+        'username': profile_user.username,
+        'email': profile_user.email,
+        'role': profile_user.role,
+    }
+    return render(request, 'profile.html', context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

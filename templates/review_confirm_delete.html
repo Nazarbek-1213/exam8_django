@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Sharhni o'chirish — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.rvdel-wrap {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 80px 24px;
+}
+.rvdel-card {
+    background: var(--surface); border: 1px solid rgba(239,68,68,.18);
+    border-radius: var(--r3); padding: 40px;
+    text-align: center;
+    animation: fadeUp .6s var(--spring) both;
+    position: relative; overflow: hidden;
+}
+.rvdel-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--danger), #f97316);
+}
+.rvdel-icon {
+    font-size: 2.5rem; margin-bottom: 18px;
+}
+.rvdel-title {
+    font-family: var(--serif); font-size: 1.5rem; color: var(--text); margin-bottom: 10px;
+}
+.rvdel-sub { color: var(--text2); font-size: .87rem; line-height: 1.7; margin-bottom: 24px; }
+
+/* Review preview */
+.rv-preview {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+    margin-bottom: 28px; text-align: left;
+}
+.rv-preview-stars { display: flex; gap: 3px; margin-bottom: 8px; }
+.rvp-f { color: var(--warning); }
+.rvp-e { color: var(--border); }
+.rv-preview-comment {
+    font-size: .82rem; color: var(--text2); line-height: 1.6; font-style: italic;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.rvdel-actions { display: flex; flex-direction: column; gap: 10px; }
+.btn-rvdel {
+    width: 100%; padding: 12px;
+    background: var(--danger); color: #fff; border: none;
+    border-radius: 100px; font-family: var(--font);
+    font-size: .9rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all var(--t);
+}
+.btn-rvdel:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(239,68,68,.28); }
+.btn-rvdel:active { transform: scale(.97); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rvdel-wrap">
+    <div class="rvdel-card">
+        <div class="rvdel-icon">🗑</div>
+        <h1 class="rvdel-title">Sharhni o'chirasizmi?</h1>
+        <p class="rvdel-sub">Bu amalni bekor qilib bo'lmaydi. Sharh butunlay o'chiriladi.</p>
+
+        <div class="rv-preview">
+            <div class="rv-preview-stars">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                    <span class="rvp-f">★</span>
+                    {% else %}
+                    <span class="rvp-e">★</span>
+                    {% endif %}
+                {% endfor %}
+                <span style="font-size:.75rem;color:var(--text3);margin-left:8px;">{{ review.rating }}/5</span>
+            </div>
+            <div class="rv-preview-comment">{{ review.comment|default:"Izohsiz sharh." }}</div>
+        </div>
+
+        <div class="rvdel-actions">
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn-rvdel">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Ha, o'chiraman
+                </button>
+            </form>
+            <a href="{% url 'review_list' %}" class="btn btn-ghost" style="justify-content:center">
+                Bekor qilish
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Mening sharhlarim — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.frl-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+.page-eyebrow {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.page-eyebrow::before { content:''; width:18px; height:2px; background:var(--accent); border-radius:2px; }
+.frl-title { font-family: var(--serif); font-size: clamp(1.8rem,4vw,2.3rem); color: var(--text); margin-bottom: 6px; }
+.frl-sub { color: var(--text2); font-size: .88rem; margin-bottom: 36px; }
+
+/* Profile card */
+.frl-profile-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r3); padding: 28px 32px;
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    animation: fadeUp .6s var(--spring) both;
+}
+.frl-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dk));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.2rem; font-weight: 800; flex-shrink: 0;
+    box-shadow: 0 6px 20px var(--accent-glow);
+}
+.frl-name { font-weight: 800; font-size: 1.15rem; color: var(--text); margin-bottom: 3px; }
+.frl-major { font-size: .82rem; color: var(--accent); margin-bottom: 10px; }
+.frl-mini-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.frl-mstat { display: flex; flex-direction: column; gap: 2px; }
+.frl-mstat-val { font-family: var(--serif); font-size: 1.4rem; color: var(--text); line-height: 1; }
+.frl-mstat-label { font-size: .7rem; color: var(--text3); font-weight: 500; }
+
+.big-rating-box {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 22px;
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.25);
+    border-radius: var(--r2); margin-left: auto;
+}
+.br-num { font-family: var(--serif); font-size: 2.4rem; color: var(--accent); line-height: 1; }
+.br-stars { display: flex; gap: 3px; font-size: 1rem; margin-bottom: 3px; }
+.brs-f { color: var(--warning); }
+.br-label { font-size: .73rem; color: var(--text2); }
+
+/* Reviews grid */
+.frl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 14px;
+    animation: fadeUp .5s var(--spring) .2s both;
+}
+.frl-rv-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 20px 22px;
+    transition: all var(--t);
+}
+.frl-rv-card:hover { border-color: rgba(29,191,115,.25); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+
+.frl-rv-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.frl-rv-auth { display: flex; align-items: center; gap: 10px; }
+.frl-rv-av {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .68rem; font-weight: 700; flex-shrink: 0;
+}
+.frl-rv-aname { font-weight: 600; font-size: .86rem; color: var(--text); }
+.frl-rv-adate { font-size: .7rem; color: var(--text3); }
+.frl-rv-stars { display: flex; gap: 2px; }
+.frvs-f { color: var(--warning); font-size: .88rem; }
+.frvs-e { color: var(--border); font-size: .88rem; }
+
+.frl-rv-proj {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .72rem; color: var(--accent);
+    background: var(--accent-lt); border: 1px solid rgba(29,191,115,.2);
+    border-radius: 100px; padding: 3px 10px; margin-bottom: 10px;
+}
+.frl-rv-comment { font-size: .84rem; color: var(--text2); line-height: 1.7; font-style: italic; }
+
+@media (max-width: 640px) {
+    .frl-wrap { padding: 32px 16px; }
+    .frl-grid { grid-template-columns: 1fr; }
+    .frl-profile-card { flex-direction: column; }
+    .big-rating-box { margin-left: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="frl-wrap">
+    <div class="page-eyebrow animate-up">⭐ Mening sharhlarim</div>
+    <h1 class="frl-title animate-up">Mijozlar sharhlari</h1>
+    <p class="frl-sub animate-up">Sizga yozilgan barcha baholar va fikrlar.</p>
+
+    <!-- Profile summary -->
+    <div class="frl-profile-card">
+        <div class="frl-avatar">{{ user.username|slice:":2"|upper }}</div>
+        <div>
+            <div class="frl-name">{{ user.username }}</div>
+            <div class="frl-major">{{ user.major|default:"Freelancer" }}</div>
+            <div class="frl-mini-stats">
+                <div class="frl-mstat">
+                    <div class="frl-mstat-val">{{ reviews|length }}</div>
+                    <div class="frl-mstat-label">Jami sharh</div>
+                </div>
+                <div class="frl-mstat">
+                    <div class="frl-mstat-val">{{ done_contracts|default:0 }}</div>
+                    <div class="frl-mstat-label">Loyiha</div>
+                </div>
+            </div>
+        </div>
+        <div class="big-rating-box">
+            <div class="br-num">{{ avg_rating|floatformat:1|default:"—" }}</div>
+            <div>
+                <div class="br-stars">
+                    <span class="brs-f">★</span><span class="brs-f">★</span>
+                    <span class="brs-f">★</span><span class="brs-f">★</span>
+                    <span class="brs-f">★</span>
+                </div>
+                <div class="br-label">O'rtacha reyting</div>
+            </div>
+        </div>
+    </div>
+
+    {% if reviews %}
+    <div class="frl-grid">
+        {% for review in reviews %}
+        <div class="frl-rv-card scroll-reveal">
+            <div class="frl-rv-top">
+                <div class="frl-rv-auth">
+                    <div class="frl-rv-av">{{ review.author.username|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="frl-rv-aname">{{ review.author.username }}</div>
+                        <div class="frl-rv-adate">{{ review.created_at|date:"d M, Y" }}</div>
+                    </div>
+                </div>
+                <div class="frl-rv-stars">
+                    {% for j in "12345" %}
+                        {% if forloop.counter <= review.rating %}<span class="frvs-f">★</span>
+                        {% else %}<span class="frvs-e">★</span>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if review.contract %}
+            <div class="frl-rv-proj">📋 {{ review.contract.project.title|truncatechars:40 }}</div>
+            {% endif %}
+            <div class="frl-rv-comment">
+                {% if review.comment %}{{ review.comment }}{% else %}<span style="opacity:.5">Izoh qoldirilmagan.</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">⭐</div>
+        <div class="empty-title">Hali sharhlar yo'q</div>
+        <p class="empty-sub">Loyihalarni muvaffaqiyatli yakunlaganingizdan so'ng mijozlar sharh qoldira oladi.</p>
+        <a href="{% url 'main_freelancer' %}" class="btn btn-primary" style="margin-top:8px">Loyihalarni ko'rish →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

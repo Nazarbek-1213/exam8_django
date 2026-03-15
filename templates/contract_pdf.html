@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Shartnoma #{{ contract.id }}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #1a1a2e;
+    background: #fff;
+}
+.page { padding: 40px 48px; }
+
+/* Header */
+.header {
+    background: #1a1a2e;
+    padding: 28px 40px;
+    display: table;
+    width: 100%;
+}
+.header-left  { display: table-cell; vertical-align: middle; }
+.header-right { display: table-cell; vertical-align: middle; text-align: right; }
+.logo-name { font-size: 18px; font-weight: bold; color: #fff; }
+.logo-name span { color: #1dbf73; }
+.doc-label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.doc-id    { font-size: 22px; font-weight: bold; color: #fff; }
+.doc-date  { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 3px; }
+
+/* Status banner */
+.status-banner {
+    padding: 12px 40px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.status-active   { background: #f0fdf4; }
+.status-finished { background: #e8f0fe; }
+.status-cancelled{ background: #fef2f2; }
+.status-text { font-size: 13px; font-weight: 600; }
+.status-active .status-text    { color: #15803d; }
+.status-finished .status-text  { color: #1a73e8; }
+.status-cancelled .status-text { color: #dc2626; }
+
+/* Body */
+.body { padding: 32px 40px; }
+
+.contract-title { font-size: 22px; font-weight: bold; color: #1a1a2e; margin-bottom: 6px; }
+.contract-sub   { font-size: 12px; color: #6b7280; margin-bottom: 28px; }
+
+/* Parties */
+.parties-table { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; margin-bottom: 28px; border-collapse: collapse; }
+.party-cell { padding: 20px; width: 50%; vertical-align: top; }
+.party-left  { background: #f9fafb; border-right: 1px solid #e5e7eb; }
+.party-right { background: #f0fdf4; }
+.party-label { font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.party-name  { font-size: 15px; font-weight: bold; color: #1a1a2e; margin-bottom: 2px; }
+.party-email { font-size: 11px; color: #6b7280; }
+.party-role  { margin-top: 6px; }
+.badge {
+    display: inline-block;
+    padding: 2px 10px; border-radius: 100px;
+    font-size: 10px; font-weight: bold;
+}
+.badge-blue  { background: #dbeafe; color: #1d4ed8; }
+.badge-green { background: #dcfce7; color: #15803d; }
+
+/* Info grid */
+.info-table { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; margin-bottom: 28px; border-collapse: collapse; }
+.info-cell { padding: 14px 18px; border-right: 1px solid #e5e7eb; vertical-align: top; width: 33%; }
+.info-cell:last-child { border-right: none; }
+.info-label { font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.info-value { font-size: 14px; font-weight: bold; color: #1a1a2e; }
+.info-value.accent { color: #1dbf73; font-size: 15px; }
+
+/* Section */
+.section { margin-bottom: 24px; }
+.section-title {
+    font-size: 10px; font-weight: bold; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 12px;
+}
+.section-bar {
+    display: inline-block;
+    width: 4px; height: 12px; border-radius: 2px;
+    background: #1dbf73; margin-right: 8px; vertical-align: middle;
+}
+.desc { font-size: 12px; color: #6b7280; line-height: 1.8; }
+
+/* Milestones table */
+.ms-table { width: 100%; border-collapse: collapse; border: 1.5px solid #e5e7eb; border-radius: 8px; }
+.ms-table th {
+    padding: 10px 12px; background: #f9fafb;
+    font-size: 10px; font-weight: bold; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    text-align: left; border-bottom: 2px solid #e5e7eb;
+}
+.ms-table td { padding: 11px 12px; font-size: 12px; color: #1a1a2e; border-bottom: 1px solid #e5e7eb; }
+.ms-table tr:last-child td { border-bottom: none; }
+.ms-table tfoot td {
+    padding: 12px; font-weight: bold;
+    background: #f0fdf4; color: #15803d; font-size: 13px;
+}
+
+/* Signatures */
+.sig-table { width: 100%; margin-top: 32px; padding-top: 24px; border-top: 2px solid #e5e7eb; border-collapse: collapse; }
+.sig-cell { width: 50%; padding: 0 20px 0 0; vertical-align: top; }
+.sig-cell:last-child { padding: 0 0 0 20px; }
+.sig-label { font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.sig-name  { font-size: 16px; font-weight: bold; color: #1a1a2e; font-style: italic; margin-bottom: 6px; }
+.sig-line  { height: 1px; background: #e5e7eb; margin: 6px 0; }
+.sig-info  { font-size: 11px; color: #6b7280; }
+
+/* Footer */
+.footer {
+    padding: 16px 40px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+.footer-text { font-size: 11px; color: #9ca3af; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-left">
+        <div class="logo-name">Freelance<span>Hub</span></div>
+    </div>
+    <div class="header-right">
+        <div class="doc-label">Shartnoma raqami</div>
+        <div class="doc-id">#{{ contract.id }}</div>
+        <div class="doc-date">Sana: {{ contract.created_at|date:"d.m.Y" }}</div>
+    </div>
+</div>
+
+<!-- Status banner -->
+<div class="status-banner status-{{ contract.status }}">
+    <span class="status-text">
+        Holat:
+        {% if contract.status == 'active' %}● Faol — bajarilmoqda
+        {% elif contract.status == 'finished' %}● Yakunlangan
+        {% elif contract.status == 'cancelled' %}● Bekor qilingan
+        {% else %}● Kutilmoqda{% endif %}
+    </span>
+</div>
+
+<!-- Body -->
+<div class="body">
+
+    <div class="contract-title">{{ contract.project.title }}</div>
+    <div class="contract-sub">Ushbu shartnoma quyidagi tomonlar o'rtasida tuzilgan</div>
+
+    <!-- Parties -->
+    <table class="parties-table">
+        <tr>
+            <td class="party-cell party-left">
+                <div class="party-label">Mijoz (Buyurtmachi)</div>
+                <div class="party-name">{{ contract.client.username }}</div>
+                <div class="party-email">{{ contract.client.email }}</div>
+                <div class="party-role"><span class="badge badge-blue">Mijoz</span></div>
+            </td>
+            <td class="party-cell party-right">
+                <div class="party-label">Frilanser (Ijrochi)</div>
+                <div class="party-name">{{ contract.freelancer.username }}</div>
+                <div class="party-email">{{ contract.freelancer.email }}</div>
+                <div class="party-role"><span class="badge badge-green">Frilanser</span></div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Info grid -->
+    <table class="info-table">
+        <tr>
+            <td class="info-cell">
+                <div class="info-label">Kelishilgan narx</div>
+                <div class="info-value accent">${{ contract.agreed_price }}</div>
+            </td>
+            <td class="info-cell">
+                <div class="info-label">Tuzilgan sana</div>
+                <div class="info-value">{{ contract.created_at|date:"d.m.Y" }}</div>
+            </td>
+            <td class="info-cell">
+                <div class="info-label">Tugash sanasi</div>
+                <div class="info-value">
+                    {% if contract.finished_at %}{{ contract.finished_at|date:"d.m.Y" }}{% else %}—{% endif %}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-cell">
+                <div class="info-label">Holat</div>
+                <div class="info-value">{{ contract.get_status_display }}</div>
+            </td>
+            <td class="info-cell">
+                <div class="info-label">Loyiha</div>
+                <div class="info-value">{{ contract.project.title|truncatechars:24 }}</div>
+            </td>
+            <td class="info-cell">
+                <div class="info-label">To'lov usuli</div>
+                <div class="info-value">Kelishuv asosida</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Shartnoma shartlari -->
+    <div class="section">
+        <div class="section-title"><span class="section-bar"></span>Shartnoma shartlari</div>
+        <p class="desc">Ushbu shartnoma FreelanceHub platformasi orqali tuzilgan va platform foydalanish shartlariga muvofiq kuchga kiradi. Barcha to'lovlar kelishuv asosida amalga oshiriladi. Har qanday nizolar platforma orqali hal etiladi.</p>
+    </div>
+
+    <!-- Signatures -->
+    <table class="sig-table">
+        <tr>
+            <td class="sig-cell">
+                <div class="sig-label">Mijoz imzosi</div>
+                <div class="sig-name">{{ contract.client.username }}</div>
+                <div class="sig-line"></div>
+                <div class="sig-info">{{ contract.client.email }}</div>
+                <div class="sig-info">Sana: {{ contract.created_at|date:"d.m.Y" }}</div>
+            </td>
+            <td class="sig-cell">
+                <div class="sig-label">Frilanser imzosi</div>
+                <div class="sig-name">{{ contract.freelancer.username }}</div>
+                <div class="sig-line"></div>
+                <div class="sig-info">{{ contract.freelancer.email }}</div>
+                <div class="sig-info">Sana: {{ contract.created_at|date:"d.m.Y" }}</div>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <div class="footer-text">Shartnoma #{{ contract.id }} — FreelanceHub platformasi orqali tuzilgan | {{ contract.created_at|date:"d.m.Y" }}</div>
+</div>
+
+</body>
+</html>
