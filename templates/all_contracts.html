@@ -1,3 +1,4 @@
+{% extends 'base.html' %}
 {% comment %}
 === all_contracts.html ===
 Copy this file and change the filter variables below for:
@@ -5,8 +6,6 @@ Copy this file and change the filter variables below for:
   - cancelled_contracts.html → status_filter = 'cancelled', page_title = 'Bekor qilingan'
   - client_contract_list.html → same structure, different queryset from view
 {% endcomment %}
-
-{% extends 'base.html' %}
 {% block title %}Barcha shartnomalar — FreelanceHub{% endblock %}
 
 {% block extra_css %}

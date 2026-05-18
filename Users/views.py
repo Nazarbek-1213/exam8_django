@@ -1,19 +1,16 @@
-from itertools import count
-
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
+from django.shortcuts import render, redirect, get_object_or_404
 
 from Bid.models import Bid
 from Contracts.models import Contract
-
-from Projects.models import *
+from Projects.models import Project
 from Review.models import Review
 from Users.models import FreelancerProfile
 
 User = get_user_model()
+
 
 def LoginView(request):
     if request.method == "POST":
@@ -41,7 +38,7 @@ def RegisterView(request):
         password = request.POST.get("password")
         password2 = request.POST.get("password2")
         email = request.POST.get("email")
-        major = request.POST.get("major")
+        major = request.POST.get("major", "")
 
         if not role:
             return render(request, "register.html", {"message": "Rol tanlash kerak"})
@@ -59,13 +56,15 @@ def RegisterView(request):
             username=username,
             password=password,
             email=email,
-            role=role
+            role=role,
         )
 
         if role == "freelancer":
             FreelancerProfile.objects.create(
                 user=user,
-                major=major
+                major=major,
+                username=username,
+                email=email,
             )
 
         login(request, user)
@@ -76,11 +75,13 @@ def RegisterView(request):
 
     return render(request, "register.html")
 
+
 def LogoutView(request):
     logout(request)
-    return render(request,'login.html')
+    return redirect('login')
 
 
+@login_required(login_url='login')
 def ProfileView(request):
     user = request.user
 
@@ -88,28 +89,34 @@ def ProfileView(request):
         "username": user.username,
         "email": user.email,
         "role": user.role,
+        "profile_user": user,
     }
     return render(request, "profile.html", context)
 
 
+@login_required(login_url='login')
 def EditProfile(request):
-    user=request.user
-    if request.method=='POST':
-     username=request.POST.get('username')
-     role=request.POST.get('role')
-     email=request.POST.get('email')
-     bio=request.POST.get('bio')
+    user = request.user
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        role = request.POST.get('role')
+        email = request.POST.get('email')
+        bio = request.POST.get('bio')
 
-     user.username=username
-     user.role=role
-     user.email=email
-     user.bio=bio
+        if username:
+            user.username = username
+        if role:
+            user.role = role
+        if email:
+            user.email = email
+        user.bio = bio or ''
 
-     user.save()
-     return redirect('profile')
+        user.save()
+        return redirect('profile')
     return render(request, 'edit_profile.html')
 
 
+@login_required(login_url='login')
 def SearchView(request):
     user = request.user
     q = request.GET.get('q', '')
@@ -123,42 +130,34 @@ def SearchView(request):
         context['projects'] = projects
 
     elif user.role == 'client':
-
         freelancers = FreelancerProfile.objects.filter(
             Q(major__icontains=q) | Q(bio__icontains=q)
         )
         context['freelancers'] = freelancers
 
-
     return render(request, 'search.html', context)
 
+
 def main_redirect(request):
-    if  request.user.is_authenticated:
+    if not request.user.is_authenticated:
         return redirect('login')
 
     if request.user.role == 'freelancer':
         return redirect('main_freelancer')
-    else:
-        return redirect('main_client')
+    return redirect('main_client')
 
+
+@login_required(login_url='login')
 def liveProView(request):
-    from Projects.models import Project
-    from Bid.models import Bid
-    from Contracts.models import Contract
-    from Review.models import Review
-    from Users.models import FreelancerProfile
-    from django.db.models import Avg
-
     user = request.user
-    if not user.is_authenticated:
-        return redirect('login')
 
     if user.role == 'client':
-        live_projects    = Project.objects.filter(client=user, status='open').count()
+        live_projects = Project.objects.filter(client=user, status='open').count()
         finished_projects = Project.objects.filter(client=user, status='completed').count()
         freelancer_count = Contract.objects.filter(
             client=user
         ).values('freelancer').distinct().count()
+
         avg_rating = Review.objects.filter(
             client=user
         ).aggregate(avg=Avg('rating'))['avg'] or 0
@@ -167,47 +166,19 @@ def liveProView(request):
         top_freelancers = FreelancerProfile.objects.all()[:5]
 
         return render(request, 'main_client.html', {
-            'live_projects':     live_projects,
+            'live_projects': live_projects,
             'finished_projects': finished_projects,
-            'freelancer_count':  freelancer_count,
-            'avg_rating':        avg_rating,
-            'my_projects':       my_projects,
-            'top_freelancers':   top_freelancers,
+            'freelancer_count': freelancer_count,
+            'avg_rating': avg_rating,
+            'my_projects': my_projects,
+            'top_freelancers': top_freelancers,
         })
 
     return redirect('main_freelancer')
-def AvgRateView(request):
-    user = request.user
-    if user.role == 'client':
-        avg_rating = Review.objects.filter(
-            freelancer=user
-        ).aggregate(Avg("rating"), client=user)
-
-        context = {
-            "avg_rating": avg_rating
-        }
-        return render(request,'main_client.html',context)
-
-def FinishedWorkView(request):
-    user = request.user
-    if user.role == 'client':
-        projects=Project.objects.filter(status='completed').count()
-        return render(request,'main_client.html',{'project':count(projects)})
-
-def FreelancerView(request):
-    user = request.user
-    if user.role == 'client':
-        bid=Contract.objects.filter(freelancer=count(Contract.freelancer))
-        return render(request,'main_client.html',{'project':count(bid)})
 
 
 @login_required(login_url='login')
 def AllProview(request):
-    from Bid.models import Bid
-    from Review.models import Review
-    from Users.models import FreelancerProfile
-    from django.db.models import Avg
-
     user = request.user
     category = request.GET.get('category', '')
     projects = Project.objects.all().order_by('-created_at')
@@ -225,6 +196,7 @@ def AllProview(request):
     total_bids = Bid.objects.filter(freelancer=user).count()
     accepted_bids = Bid.objects.filter(freelancer=user, status='accepted').count()
 
+    avg_rating = 0
     try:
         profile = FreelancerProfile.objects.get(user=user)
         avg = Review.objects.filter(freelancer=profile).aggregate(avg=Avg('rating'))
@@ -242,17 +214,16 @@ def AllProview(request):
     })
 
 
-@login_required
+@login_required(login_url='login')
 def logo_redirect(request):
     user = request.user
     if user.role == 'freelancer':
         return redirect('main_freelancer')
-    else:
-        return redirect('main_client')
+    return redirect('main_client')
 
 
+@login_required(login_url='login')
 def UserProfileView(request, pk):
-    from django.shortcuts import get_object_or_404
     profile_user = get_object_or_404(User, pk=pk)
     context = {
         'profile_user': profile_user,
@@ -261,20 +232,3 @@ def UserProfileView(request, pk):
         'role': profile_user.role,
     }
     return render(request, 'profile.html', context)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

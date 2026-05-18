@@ -1,0 +1,13 @@
+Django==6.0.3
+gunicorn==26.0.0
+whitenoise==6.12.0
+dj-database-url==3.1.2
+psycopg2-binary==2.9.9
+xhtml2pdf==0.2.17
+reportlab==4.4.10
+Pillow==12.1.1
+arabic-reshaper==3.0.0
+html5lib==1.1
+python-bidi==0.6.7
+pypdf==6.8.0
+svglib==1.6.0

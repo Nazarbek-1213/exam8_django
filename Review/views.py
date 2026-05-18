@@ -5,8 +5,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from Contracts.models import Contract
+from Users.models import FreelancerProfile
 from .models import Review
-
 
 
 def write_review(request, contract_id):
@@ -16,45 +16,56 @@ def write_review(request, contract_id):
         messages.error(request, "Faqat mijoz sharh yoza oladi.")
         return redirect('contract_detail', contract_id=contract.id)
 
-    if hasattr(contract, 'review'):
-        messages.info(request, "Siz allaqachon sharh yozgansiz.")
-        return redirect('contract_detail', contract_id=contract.id)
-
     if contract.status != 'finished':
         messages.error(request, "Faqat yakunlangan shartnomaga sharh yozish mumkin.")
         return redirect('contract_detail', contract_id=contract.id)
 
+    freelancer_profile = FreelancerProfile.objects.filter(user=contract.freelancer).first()
+    if not freelancer_profile:
+        messages.error(request, "Freelancer profili topilmadi.")
+        return redirect('contract_detail', contract_id=contract.id)
+
+    if Review.objects.filter(client=contract.client, freelancer=freelancer_profile).exists():
+        messages.info(request, "Siz allaqachon sharh yozgansiz.")
+        return redirect('contract_detail', contract_id=contract.id)
+
     if request.method == 'POST':
-        rating  = request.POST.get('rating', '0')
+        rating = request.POST.get('rating', '0')
         comment = request.POST.get('comment', '').strip()
 
-        if not rating or not (1 <= int(rating) <= 5):
+        try:
+            rating_int = int(rating)
+        except (TypeError, ValueError):
+            rating_int = 0
+
+        if not (1 <= rating_int <= 5):
             messages.error(request, "Reyting 1 dan 5 gacha bo'lishi kerak.")
             return render(request, 'write.html', {
                 'contract': contract,
-                'reviewee': contract.freelancer
+                'reviewee': contract.freelancer,
             })
 
         Review.objects.create(
             client=contract.client,
-            freelancer=contract.freelancer,
-            contract=contract,
-            rating=int(rating),
-            comment=comment
+            freelancer=freelancer_profile,
+            rating=rating_int,
+            comment=comment,
         )
         messages.success(request, "Sharh muvaffaqiyatli qoldirildi")
         return redirect('contract_detail', contract_id=contract.id)
 
     return render(request, 'write.html', {
         'contract': contract,
-        'reviewee': contract.freelancer
+        'reviewee': contract.freelancer,
     })
+
 
 class ReviewListView(LoginRequiredMixin, ListView):
     model = Review
     template_name = 'review_list.html'
     context_object_name = 'reviews'
     ordering = ['-created_at']
+
 
 class FreelancerReviewListView(LoginRequiredMixin, ListView):
     model = Review
@@ -70,6 +81,7 @@ class ReviewDetailView(LoginRequiredMixin, DetailView):
     model = Review
     template_name = 'review_detail.html'
     context_object_name = 'review'
+
 
 class ReviewUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Review

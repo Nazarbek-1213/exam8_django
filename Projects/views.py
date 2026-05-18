@@ -1,18 +1,18 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 
 from Bid.models import Bid
 from .forms import ProjectForm
 from .models import Project
 
+
+@login_required(login_url='login')
 def CreateProView(request):
     if request.user.role != 'client':
         return redirect('main_freelancer')
 
     if request.method == 'POST':
         form = ProjectForm(request.POST)
-        print("IS VALID:", form.is_valid())
-        print("ERRORS:", form.errors)
-        print("POST DATA:", request.POST)
         if form.is_valid():
             project = form.save(commit=False)
             project.client = request.user
@@ -24,51 +24,50 @@ def CreateProView(request):
 
     return render(request, 'create_post.html', {'form': form})
 
+
+@login_required(login_url='login')
 def SelfProjectsView(request):
     user = request.user
 
     projects = Project.objects.filter(client=user).order_by('-created_at')
 
     context = {
-        'projects': projects
+        'projects': projects,
     }
 
     return render(request, 'myprojects.html', context)
 
 
-
+@login_required(login_url='login')
 def ProjectdetailsView(request, id):
     user = request.user
 
-    if user.role != 'client':
-        return redirect('login')
+    project = get_object_or_404(Project, id=id)
 
-    project = get_object_or_404(Project, id=id, client=user)
+    bids = Bid.objects.filter(project=project).select_related('freelancer')
 
-    bids = Bid.objects.filter(project=project)
+    my_bid = None
+    if user.role == 'freelancer':
+        my_bid = Bid.objects.filter(
+            project=project,
+            freelancer=user,
+        ).first()
 
-    freelancers = []
-    durations = []
-
-    for bid in bids:
-
-        if hasattr(bid, "freelancer") and bid.freelancer:
-            freelancers.append(str(bid.freelancer))
-
-        if getattr(bid, "finished_at", None):
-            durations.append(bid.finished_at - bid.created_at)
+    similar_projects = Project.objects.filter(
+        category=project.category,
+    ).exclude(pk=project.pk)[:4]
 
     context = {
         "project": project,
         "bids": bids,
-        "freelancers": freelancers,
-        "durations": durations
+        "my_bid": my_bid,
+        "similar_projects": similar_projects,
     }
 
     return render(request, "project_detail.html", context)
 
 
-
+@login_required(login_url='login')
 def DeleteProjectView(request, id):
     user = request.user
 
@@ -80,7 +79,7 @@ def DeleteProjectView(request, id):
     if project.status != Project.OPEN:
         return render(request, 'project_delete.html', {
             "project": project,
-            "error": "Faqat open loyihani o'chirish mumkin"
+            "error": "Faqat open loyihani o'chirish mumkin",
         })
 
     if request.method == "POST":
@@ -90,7 +89,7 @@ def DeleteProjectView(request, id):
     return render(request, "project_delete.html", {"project": project})
 
 
-
+@login_required(login_url='login')
 def EditProjectView(request, id):
     user = request.user
 
@@ -102,24 +101,28 @@ def EditProjectView(request, id):
     if project.status != Project.OPEN:
         return render(request, "edit_project.html", {
             "project": project,
-            "error": "Faqat open loyihani tahrirlash mumkin"
+            "error": "Faqat open loyihani tahrirlash mumkin",
         })
 
     if request.method == "POST":
+        project.title = request.POST.get("title") or project.title
+        project.description = request.POST.get("description") or project.description
+        project.category = request.POST.get("category") or project.category
+        project.budget_type = request.POST.get("budget_type") or project.budget_type
 
-        project.title = request.POST.get("title")
-        project.description = request.POST.get("description")
+        budget_min = request.POST.get("budget_min")
+        budget_max = request.POST.get("budget_max")
+        if budget_min:
+            project.budget_min = budget_min
+        if budget_max:
+            project.budget_max = budget_max
 
-        project.category = request.POST.get("category")
+        project.level = request.POST.get("level") or project.level
+        project.skills = request.POST.get("skills") or project.skills
 
-        project.budget_type = request.POST.get("budget_type")
-        project.budget_min = request.POST.get("budget_min")
-        project.budget_max = request.POST.get("budget_max")
-
-        project.level = request.POST.get("level")
-        project.skills = request.POST.get("skills")
-
-        project.deadline = request.POST.get("deadline")
+        deadline = request.POST.get("deadline")
+        if deadline:
+            project.deadline = deadline
 
         project.save()
 

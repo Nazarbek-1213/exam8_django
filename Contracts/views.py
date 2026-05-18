@@ -5,12 +5,20 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.utils import timezone
-from xhtml2pdf import pisa
+from django.contrib.auth import get_user_model
 from .models import Contract
 from Projects.models import Project
-from Users.models import User
+
+try:
+    from xhtml2pdf import pisa
+except ImportError:
+    pisa = None
+
+User = get_user_model()
 
 def render_to_pdf(template_src, context_dict=None):
+    if pisa is None:
+        return None
     context_dict = context_dict or {}
     template = get_template(template_src)
     html = template.render(context_dict)
@@ -21,6 +29,23 @@ def render_to_pdf(template_src, context_dict=None):
     return None
 
 
+@login_required(login_url='login')
+def contract_pdf(request, contract_id):
+    contract = get_object_or_404(Contract, id=contract_id)
+    if request.user != contract.client and request.user != contract.freelancer:
+        messages.error(request, "Siz bu shartnomani ko'ra olmaysiz.")
+        return redirect('main-redirect')
+
+    pdf = render_to_pdf('contract_pdf.html', {'contract': contract})
+    if pdf is None:
+        messages.error(request, "PDF generatsiya qilib bo'lmadi.")
+        return redirect('contract_detail', contract_id=contract.id)
+    response = pdf
+    response['Content-Disposition'] = f'attachment; filename="contract_{contract.id}.pdf"'
+    return response
+
+
+@login_required(login_url='login')
 def create_contract(request, project_id, freelancer_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = get_object_or_404(User, id=freelancer_id)
@@ -63,6 +88,7 @@ def create_contract(request, project_id, freelancer_id):
         'freelancer': freelancer
     })
 
+@login_required(login_url='login')
 def contract_detail(request, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
 
@@ -79,6 +105,7 @@ def contract_detail(request, contract_id):
     }
     return render(request, 'contract_detail.html', context)
 
+@login_required(login_url='login')
 def client_contract_list(request):
     if request.user.role != 'client':
         messages.error(request, "Faqat client contractlarni ko‘ra oladi.")
@@ -95,11 +122,13 @@ def freelancer_contract_list(request):
     return render(request, 'freelancer_contract_list.html', {'contracts': contracts})
 
 
+@login_required(login_url='login')
 def all_contracts(request):
     contracts = Contract.objects.all().order_by('-created_at')
     return render(request, 'all_contracts.html', {'contracts': contracts})
 
 
+@login_required(login_url='login')
 def active_contracts(request):
     if request.user.role == 'client':
         contracts = Contract.objects.filter(client=request.user,status=Contract.ACTIVE).order_by('-created_at')
@@ -109,6 +138,7 @@ def active_contracts(request):
         contracts = Contract.objects.none()
     return render(request, 'active_contracts.html', {'contracts': contracts})
 
+@login_required(login_url='login')
 def finished_contracts(request):
     if request.user.role == 'client':
         contracts = Contract.objects.filter(client=request.user,status=Contract.FINISHED).order_by('-created_at')
@@ -119,6 +149,7 @@ def finished_contracts(request):
     return render(request, 'finished_contracts.html', {'contracts': contracts})
 
 
+@login_required(login_url='login')
 def cancelled_contracts(request):
     if request.user.role == 'client':
         contracts = Contract.objects.filter(client=request.user,status=Contract.CANCELLED).order_by('-created_at')
@@ -128,6 +159,7 @@ def cancelled_contracts(request):
         contracts = Contract.objects.none()
     return render(request, 'cancelled_contracts.html', {'contracts': contracts})
 
+@login_required(login_url='login')
 def finish_contract(request, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
     if request.user != contract.client:
@@ -142,6 +174,7 @@ def finish_contract(request, contract_id):
     messages.success(request, "Contract tugatildi.")
     return redirect('contract_detail', contract_id=contract.id)
 
+@login_required(login_url='login')
 def cancel_contract(request, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
     if request.user != contract.client:
