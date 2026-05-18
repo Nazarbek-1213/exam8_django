@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Arizani rad etish — EzyDeal{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:60px auto;padding:24px;">
+  <div class="card">
+    <h2 style="font-family:var(--serif);font-size:1.5rem;margin-bottom:8px;">Arizani <em style="color:var(--danger);font-style:italic;">rad etish</em></h2>
+    <p style="color:var(--text2);font-size:.9rem;margin-bottom:20px;">
+      <strong>{{ bid.freelancer.username }}</strong> ning <strong>{{ bid.project.title }}</strong> loyihasi bo'yicha arizasini rad etmoqchimisiz?
+    </p>
+
+    <div style="background:var(--bg);border-radius:var(--r);padding:14px;margin-bottom:18px;">
+      <div style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Ariza matni</div>
+      <div style="font-size:.88rem;color:var(--text);">{{ bid.xabar|linebreaksbr }}</div>
+      <div style="margin-top:10px;font-size:.85rem;color:var(--accent);font-weight:700;">${{ bid.price }}</div>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label">Rad etish sababi (ixtiyoriy)</label>
+        <textarea name="reason" class="form-input" rows="3" placeholder="Freelancer'ga sabab ko'rsating..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-danger">Rad etish</button>
+        <a href="{% url 'project_detail' bid.project.id %}" class="btn btn-ghost">Bekor qilish</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

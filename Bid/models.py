@@ -23,6 +23,8 @@ class Bid(models.Model):
     )
     price = models.DecimalField(max_digits=12, decimal_places=2)
     xabar = models.TextField()
+    attachment = models.FileField(upload_to='bids/', blank=True, null=True)
+    delivery_days = models.PositiveIntegerField(default=7)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

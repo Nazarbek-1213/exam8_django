@@ -84,12 +84,14 @@ def LogoutView(request):
 @login_required(login_url='login')
 def ProfileView(request):
     user = request.user
+    profile = FreelancerProfile.objects.filter(user=user).first()
 
     context = {
         "username": user.username,
         "email": user.email,
         "role": user.role,
         "profile_user": user,
+        "freelancer_profile": profile,
     }
     return render(request, "profile.html", context)
 
@@ -97,23 +99,47 @@ def ProfileView(request):
 @login_required(login_url='login')
 def EditProfile(request):
     user = request.user
+    profile = FreelancerProfile.objects.filter(user=user).first()
+
     if request.method == 'POST':
         username = request.POST.get('username')
-        role = request.POST.get('role')
         email = request.POST.get('email')
         bio = request.POST.get('bio')
+        avatar = request.FILES.get('avatar')
 
         if username:
             user.username = username
-        if role:
-            user.role = role
         if email:
             user.email = email
         user.bio = bio or ''
-
+        if avatar:
+            user.avatar = avatar
         user.save()
+
+        if user.role == 'freelancer':
+            if not profile:
+                profile = FreelancerProfile.objects.create(user=user, major='')
+            profile.major = request.POST.get('major', profile.major) or profile.major
+            profile.skills = request.POST.get('skills', '')
+            hourly = request.POST.get('hourly_rate')
+            if hourly:
+                try:
+                    profile.hourly_rate = float(hourly)
+                except ValueError:
+                    pass
+            exp = request.POST.get('experience_years')
+            if exp:
+                try:
+                    profile.experience_years = int(exp)
+                except ValueError:
+                    pass
+            profile.portfolio_url = request.POST.get('portfolio_url', '')
+            profile.bio = bio or ''
+            profile.save()
+
         return redirect('profile')
-    return render(request, 'edit_profile.html')
+
+    return render(request, 'edit_profile.html', {'profile': profile})
 
 
 @login_required(login_url='login')
@@ -225,10 +251,22 @@ def logo_redirect(request):
 @login_required(login_url='login')
 def UserProfileView(request, pk):
     profile_user = get_object_or_404(User, pk=pk)
+    profile = FreelancerProfile.objects.filter(user=profile_user).first()
+
+    avg_rating = 0
+    review_count = 0
+    if profile:
+        agg = Review.objects.filter(freelancer=profile).aggregate(avg=Avg('rating'))
+        avg_rating = agg['avg'] or 0
+        review_count = Review.objects.filter(freelancer=profile).count()
+
     context = {
         'profile_user': profile_user,
         'username': profile_user.username,
         'email': profile_user.email,
         'role': profile_user.role,
+        'freelancer_profile': profile,
+        'avg_rating': avg_rating,
+        'review_count': review_count,
     }
     return render(request, 'profile.html', context)

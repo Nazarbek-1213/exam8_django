@@ -20,18 +20,21 @@ def place_bid(request, pk):
     if request.method == 'POST':
         price = request.POST.get('amount') or request.POST.get('price')
         text = request.POST.get('xabar', '').strip()
+        delivery_days = request.POST.get('delivery_days', '7')
+        attachment = request.FILES.get('attachment')
 
         if not price:
             messages.error(request, "Iltimos, summani kiriting.")
             return render(request, 'place_bid.html', {'project': project})
 
         try:
-            price = float(price)
             Bid.objects.create(
                 project=project,
                 freelancer=request.user,
-                price=price,
+                price=float(price),
                 xabar=text,
+                delivery_days=int(delivery_days or 7),
+                attachment=attachment,
             )
             messages.success(request, "Ariza muvaffaqiyatli yuborildi!")
         except Exception as e:

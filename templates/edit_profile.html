@@ -270,7 +270,7 @@
     <!-- ── Main content ── -->
     <div class="edit-main">
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data" id="profileEditForm">
             {% csrf_token %}
 
             <!-- Basic info section -->
@@ -285,6 +285,19 @@
                     </div>
                 </div>
                 <div class="edit-section-body">
+                    <div class="form-group" style="margin-bottom:18px;">
+                        <label class="form-label">Profil rasmi</label>
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1DBF73,#17a362);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;overflow:hidden;">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                {% else %}
+                                    {{ user.username|slice:":2"|upper }}
+                                {% endif %}
+                            </div>
+                            <input class="form-input" type="file" name="avatar" accept="image/*">
+                        </div>
+                    </div>
                     <div class="form-row-2">
                         <div class="form-group">
                             <label class="form-label" for="username">Foydalanuvchi nomi</label>
@@ -297,6 +310,36 @@
                                    value="{{ user.email }}" placeholder="siz@email.com" required>
                         </div>
                     </div>
+                    <div class="form-group" style="margin-top:14px;">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-input" name="bio" rows="3" placeholder="O'zingiz haqingizda...">{{ user.bio|default_if_none:'' }}</textarea>
+                    </div>
+                    {% if user.role == 'freelancer' %}
+                    <div class="form-row-2" style="margin-top:14px;">
+                        <div class="form-group">
+                            <label class="form-label">Mutaxassislik</label>
+                            <input class="form-input" type="text" name="major" value="{{ profile.major|default:'' }}" placeholder="Full-stack Developer">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Soatlik narx ($)</label>
+                            <input class="form-input" type="number" step="0.01" name="hourly_rate" value="{{ profile.hourly_rate|default:'' }}" placeholder="25">
+                        </div>
+                    </div>
+                    <div class="form-row-2" style="margin-top:14px;">
+                        <div class="form-group">
+                            <label class="form-label">Tajriba (yil)</label>
+                            <input class="form-input" type="number" name="experience_years" value="{{ profile.experience_years|default:0 }}" min="0" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Portfolio URL</label>
+                            <input class="form-input" type="url" name="portfolio_url" value="{{ profile.portfolio_url|default:'' }}" placeholder="https://...">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:14px;">
+                        <label class="form-label">Ko'nikmalar (vergul bilan)</label>
+                        <input class="form-input" type="text" name="skills" value="{{ profile.skills|default:'' }}" placeholder="Python, Django, React">
+                    </div>
+                    {% endif %}
                     <div class="form-group">
                         <label class="form-label" for="bio">Bio / Haqimda</label>
                         <textarea class="form-input" name="bio" id="bio" rows="4"
@@ -431,7 +474,7 @@
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 <a href="{% url 'profile' %}" class="btn btn-ghost">Bekor qilish</a>
-                <button type="submit" form="your_form_id" class="btn btn-primary">
+                <button type="submit" form="profileEditForm" class="btn btn-primary">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     O'zgarishlarni saqlash
                 </button>

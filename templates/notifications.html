@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Bildirishnomalar — EzyDeal{% endblock %}
+
+{% block extra_css %}
+<style>
+.notif-page { max-width: 800px; margin: 0 auto; padding: 32px 24px 80px; }
+.notif-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.notif-title {
+  font-family: var(--serif); font-size: 1.75rem; color: var(--text);
+}
+.notif-title em { color: var(--accent); font-style: italic; }
+
+.notif-list { display: flex; flex-direction: column; gap: 10px; }
+.notif-item {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r2);
+  padding: 16px 20px;
+  display: flex; gap: 14px; align-items: flex-start;
+  transition: var(--t);
+}
+.notif-item:hover { border-color: var(--accent); }
+.notif-item.unread { background: var(--accent-lt); border-left: 4px solid var(--accent); }
+
+.notif-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--accent-lt);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+
+.notif-body { flex: 1; }
+.notif-text { color: var(--text); font-size: .9rem; font-weight: 500; }
+.notif-time { font-size: .75rem; color: var(--text3); margin-top: 4px; }
+.notif-link { color: var(--accent); font-size: .78rem; font-weight: 600; text-decoration: none; }
+.notif-link:hover { text-decoration: underline; }
+
+.empty-state {
+  text-align: center; padding: 80px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.empty-icon { font-size: 3rem; opacity: .4; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+
+  <div class="notif-topbar">
+    <h1 class="notif-title">Bildirish<em>nomalar</em></h1>
+    {% if unread_notifications %}
+      <a href="{% url 'notifications_mark_all' %}" class="btn btn-ghost btn-sm">Hammasini o'qilgan deb belgilash</a>
+    {% endif %}
+  </div>
+
+  <div class="notif-list">
+    {% for n in notifications %}
+      <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+        <div class="notif-icon">
+          {% if n.kind == 'bid' %}📩
+          {% elif n.kind == 'bid_accepted' %}✅
+          {% elif n.kind == 'bid_rejected' %}❌
+          {% elif n.kind == 'contract' %}📄
+          {% elif n.kind == 'contract_finished' %}🏁
+          {% elif n.kind == 'contract_cancelled' %}🚫
+          {% elif n.kind == 'review' %}⭐
+          {% elif n.kind == 'message' %}💬
+          {% else %}🔔
+          {% endif %}
+        </div>
+        <div class="notif-body">
+          <div class="notif-text">{{ n.text }}</div>
+          <div class="notif-time">{{ n.created_at|timesince }} oldin</div>
+          {% if n.url %}
+            <a class="notif-link" href="{% url 'notification_read' n.pk %}">Ko'rish →</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <div class="empty-title">Bildirishnomalar yo'q</div>
+        <div class="empty-sub">Yangi arizalar, shartnomalar va xabarlar bu yerda ko'rinadi</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div style="margin-top:24px;display:flex;gap:8px;justify-content:center;">
+    {% if page_obj.has_previous %}<a class="btn btn-ghost btn-sm" href="?page={{ page_obj.previous_page_number }}">← Oldingi</a>{% endif %}
+    <span class="btn btn-sm">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-ghost btn-sm" href="?page={{ page_obj.next_page_number }}">Keyingi →</a>{% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

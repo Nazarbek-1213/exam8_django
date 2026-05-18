@@ -516,7 +516,7 @@ body {
           <div class="conv-preview">{{ conv.last_message|truncatechars:32 }}</div>
         </div>
         <div class="conv-meta">
-          <div class="conv-time">{{ conv.last_time|timesince|split:" "|first }}  </div>
+          <div class="conv-time">{{ conv.last_time|timesince }}</div>
           {% if conv.unread_count %}<div class="conv-badge">{{ conv.unread_count }}</div>{% endif %}
         </div>
       </a>

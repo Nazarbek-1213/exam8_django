@@ -2,6 +2,7 @@ from io import BytesIO
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.utils import timezone
@@ -124,8 +125,15 @@ def freelancer_contract_list(request):
 
 @login_required(login_url='login')
 def all_contracts(request):
-    contracts = Contract.objects.all().order_by('-created_at')
-    return render(request, 'all_contracts.html', {'contracts': contracts})
+    if request.user.role == 'client':
+        contracts = Contract.objects.filter(client=request.user).order_by('-created_at')
+    elif request.user.role == 'freelancer':
+        contracts = Contract.objects.filter(freelancer=request.user).order_by('-created_at')
+    else:
+        contracts = Contract.objects.all().order_by('-created_at')
+    paginator = Paginator(contracts, 15)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'all_contracts.html', {'contracts': page, 'page_obj': page})
 
 
 @login_required(login_url='login')
